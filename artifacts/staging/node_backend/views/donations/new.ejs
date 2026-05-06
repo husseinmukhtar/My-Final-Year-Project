@@ -1,0 +1,136 @@
+<%- include('../partials/header', { pageTitle: 'Add Donation', activePage: 'donations' }) %>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Log New Donation
+</div>
+
+<div class="card form-container">
+    <form action="/donations" method="POST" class="validate-form" id="donationForm" novalidate>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Donor Name</label>
+                <input type="text" name="donor_name" class="form-control" required placeholder="John Doe">
+                <span class="invalid-feedback">Donor name is required.</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Donor Email</label>
+                <input type="email" name="donor_email" class="form-control" required placeholder="john@example.com">
+                <span class="invalid-feedback">A valid email address is required.</span>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Donation Type</label>
+                <select name="donation_type" id="donation_type" class="form-control" required>
+                    <option value="" disabled selected>Select Type</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Items">Items</option>
+                </select>
+                <span class="invalid-feedback">Please select a donation type.</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Donation Date</label>
+                <input type="date" name="donation_date" class="form-control" required>
+                <span class="invalid-feedback">Donation date is required.</span>
+            </div>
+        </div>
+
+        <div class="form-group" id="amountGroup" style="display: none;">
+            <label class="form-label">Currency & Amount</label>
+            <div style="display: flex; gap: 10px;">
+                <select name="currency" class="form-control" style="flex: 1;">
+                    <option value="NGN">Naira (₦)</option>
+                    <option value="USD" selected>Dollar ($)</option>
+                </select>
+                <input type="number" step="0.01" name="amount" id="amount" class="form-control" style="flex: 2;" placeholder="100.00">
+            </div>
+            <span class="invalid-feedback">Please enter a valid amount.</span>
+        </div>
+
+        <div class="form-group" id="paymentMethodGroup" style="display: none;">
+            <label class="form-label">Payment Method</label>
+            <select name="payment_method" id="payment_method" class="form-control">
+                <option value="" disabled selected>Select Payment Method</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+            <span class="invalid-feedback">Please select a payment method.</span>
+        </div>
+
+        <div class="form-group" id="descriptionGroup" style="display: none;">
+            <label class="form-label">Item Description</label>
+            <textarea name="item_description" id="item_description" class="form-control" rows="3" placeholder="e.g. 10 winter coats, 3 boxes of toys"></textarea>
+            <span class="invalid-feedback">Item description is required.</span>
+        </div>
+
+        <div class="form-actions">
+            <a href="/donations" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Save Donation
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const typeSelect = document.getElementById('donation_type');
+        const amountGroup = document.getElementById('amountGroup');
+        const amountInput = document.getElementById('amount');
+        const paymentMethodGroup = document.getElementById('paymentMethodGroup');
+        const paymentMethodInput = document.getElementById('payment_method');
+        const descriptionGroup = document.getElementById('descriptionGroup');
+        const descriptionInput = document.getElementById('item_description');
+        const form = document.getElementById('donationForm');
+
+        function toggleFields() {
+            const val = typeSelect.value;
+            if (val === 'Cash') {
+                amountGroup.style.display = 'block';
+                amountInput.setAttribute('required', 'required');
+                
+                paymentMethodGroup.style.display = 'block';
+                paymentMethodInput.setAttribute('required', 'required');
+                
+                descriptionGroup.style.display = 'none';
+                descriptionInput.removeAttribute('required');
+            } else if (val === 'Items') {
+                descriptionGroup.style.display = 'block';
+                descriptionInput.setAttribute('required', 'required');
+                
+                amountGroup.style.display = 'none';
+                amountInput.removeAttribute('required');
+                
+                paymentMethodGroup.style.display = 'none';
+                paymentMethodInput.removeAttribute('required');
+            } else {
+                amountGroup.style.display = 'none';
+                paymentMethodGroup.style.display = 'none';
+                descriptionGroup.style.display = 'none';
+            }
+        }
+
+        typeSelect.addEventListener('change', toggleFields);
+        toggleFields(); // Init on load
+
+        // Generic Validation
+        const forms = document.querySelectorAll('.validate-form');
+        forms.forEach(f => {
+            f.addEventListener('submit', function(event) {
+                if (!f.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                f.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+
+<%- include('../partials/footer') %>

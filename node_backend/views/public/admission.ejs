@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Adoption - Hope Orphanage</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Extract necessary public styles for adoption form */
+        .page-header { text-align: center; margin: 4rem 1rem 2rem; color: #fff; }
+        .page-header h2 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .page-header p { color: var(--text-muted); font-size: 1.1rem; }
+        .form-container-glass {
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(25px);
+            border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px;
+            padding: 2.5rem; max-width: 800px; margin: 0 auto 4rem;
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.1), 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            color: #fff;
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .form-row .form-group { flex: 1; min-width: 250px; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
+        .form-control {
+            width: 100%; padding: 0.75rem 1rem; background: rgba(0,0,0,0.2); 
+            border: 1px solid var(--glassborder); border-radius: 8px; color: #fff; 
+            font-size: 1rem; box-sizing: border-box; transition: all 0.3s;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); background: rgba(0,0,0,0.3); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
+        .btn-submit {
+            width: 100%; padding: 1rem; border: none; border-radius: 8px;
+            background: var(--primary); color: #fff; font-size: 1.1rem; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease; margin-top: 2rem;
+        }
+        .btn-submit:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4); }
+        .required-mark { color: var(--danger); }
+        .alert-error { background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 1rem; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.4); margin-bottom: 1.5rem; }
+        
+        .child-form-section-title { font-size: 1.25rem; color: #fff; border-bottom: 1px solid var(--glassborder); padding-bottom: 0.5rem; margin-top: 2.5rem; margin-bottom: 1.5rem; }
+        .child-form-section-title:first-child { margin-top: 0; }
+    </style>
+</head>
+<body class="bg-gray-900">
+
+    <!-- Navbar cloned from landing page -->
+    <header>
+        <nav class="navbar" style="background: rgba(15, 23, 42, 0.5);">
+            <a href="/" class="logo" style="text-decoration: none; color: white;">
+                <i class="fa-solid fa-hands-holding-child text-primary mr-2"></i> OMS<span class="text-primary text-xs ml-1 font-mono">SYSTEM</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/admission/status">Application Status</a></li>
+                <li><a href="/login" class="btn btn-outline btn-small">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="page-header">
+        <h2>Apply for Adoption</h2>
+        <p>Start the journey of giving a child a loving home.</p>
+    </div>
+
+    <% const p = typeof prefill !== 'undefined' && prefill ? prefill : {}; %>
+    <% const sel = (v, c) => (String(c || '') === String(v || '') ? 'selected' : ''); %>
+    <% function dv(d) { if (!d) return ''; if (d instanceof Date) return d.toISOString().slice(0,10); return String(d).slice(0,10); } %>
+    <% function childLabel(ch) {
+      var parts = [ch.first_name, ch.middle_name, ch.last_name].filter(function (x) { return x && String(x).trim(); }).join(' ').trim();
+      return (parts || ch.name || 'Child') + (ch.child_public_id ? ' — ' + ch.child_public_id : '');
+    } %>
+
+    <div class="form-container-glass">
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        
+        <% if (typeof success !== 'undefined' && success) { %>
+            <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Application Received',
+                    text: '<%= success %>',
+                    background: '#1E293B',
+                    color: '#fff',
+                    confirmButtonColor: '#4F46E5'
+                }).then(() => {
+                    window.location.href = '/';
+                });
+            </script>
+        <% } else if (!children || children.length === 0) { %>
+            <div style="text-align: center; padding: 2rem;">
+                <i class="fa-solid fa-child" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                <h3 style="color: #fff; margin-bottom: 1rem;">No Eligible Children</h3>
+                <p style="color: var(--text-muted);">Currently, there are no children available for new adoption applications. Please check back later.</p>
+                <a href="/" class="btn btn-primary" style="margin-top: 1.5rem;">Return Home</a>
+            </div>
+        <% } else { %>
+            <form action="/public/admission" method="POST" enctype="multipart/form-data">
+                
+                <h3 class="child-form-section-title">Child Selection</h3>
+                <div class="form-group">
+                    <label class="form-label">Child you wish to adopt <span class="required-mark">*</span></label>
+                    <select name="child_id" class="form-control" required>
+                        <option value="">Select child</option>
+                        <% children.forEach(function (ch) { %>
+                            <option value="<%= ch.id %>" <%= sel(ch.id, p.child_id) %>><%= childLabel(ch) %></option>
+                        <% }); %>
+                    </select>
+                </div>
+
+                <h3 class="child-form-section-title">Applicant Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Guardian Name</label>
+                        <input type="text" name="guardian_name" class="form-control" maxlength="200" value="<%= p.guardian_name || '' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Relationship to Child</label>
+                        <select name="relationship" class="form-control">
+                            <option value="">Select</option>
+                            <option value="Parent" <%= sel('Parent', p.relationship) %>>Parent</option>
+                            <option value="Relative" <%= sel('Relative', p.relationship) %>>Relative</option>
+                            <option value="Guardian" <%= sel('Guardian', p.relationship) %>>Guardian</option>
+                            <option value="Other" <%= sel('Other', p.relationship) %>>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Full Name <span class="required-mark">*</span></label>
+                    <input type="text" name="adopter_full_name" class="form-control" required maxlength="255" value="<%= p.adopter_full_name || '' %>">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Gender <span class="required-mark">*</span></label>
+                        <select name="adopter_gender" class="form-control" required>
+                            <option value="">Select</option>
+                            <option value="Male" <%= sel('Male', p.adopter_gender) %>>Male</option>
+                            <option value="Female" <%= sel('Female', p.adopter_gender) %>>Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="adopter_dob" class="form-control" value="<%= dv(p.adopter_dob) %>">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nationality / Country <span class="required-mark">*</span></label>
+                        <select name="adopter_nationality" id="adopter_nationality" class="form-control" required>
+                            <option value="">Select</option>
+                            <option value="Ghana" <%= sel('Ghana', p.adopter_nationality) %>>Ghana</option>
+                            <option value="Nigeria" <%= sel('Nigeria', p.adopter_nationality) %>>Nigeria</option>
+                            <option value="Kenya" <%= sel('Kenya', p.adopter_nationality) %>>Kenya</option>
+                            <option value="United States" <%= sel('United States', p.adopter_nationality) %>>United States</option>
+                            <option value="United Kingdom" <%= sel('United Kingdom', p.adopter_nationality) %>>United Kingdom</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone <span class="required-mark">*</span></label>
+                        <input type="tel" name="adopter_phone" id="adopter_phone" class="form-control" required value="<%= p.adopter_phone || '' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email <span class="required-mark">*</span></label>
+                        <input type="email" name="adopter_email" class="form-control" required value="<%= p.adopter_email || '' %>">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Residential Address <span class="required-mark">*</span></label>
+                    <textarea name="adopter_address" class="form-control" rows="3" required><%= p.adopter_address || '' %></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Marital Status <span class="required-mark">*</span></label>
+                    <select name="marital_status" class="form-control" required>
+                        <option value="">Select</option>
+                        <option value="Single" <%= sel('Single', p.marital_status) %>>Single</option>
+                        <option value="Married" <%= sel('Married', p.marital_status) %>>Married</option>
+                        <option value="Divorced" <%= sel('Divorced', p.marital_status) %>>Divorced</option>
+                    </select>
+                </div>
+
+                <h3 class="child-form-section-title">Household & Financial Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Occupation</label>
+                        <input type="text" name="occupation" class="form-control" maxlength="200" value="<%= p.occupation || '' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Number of children currently in household</label>
+                        <input type="number" name="number_of_children" class="form-control" min="0" max="30" value="<%= p.number_of_children != null ? p.number_of_children : 0 %>">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Monthly Income Level</label>
+                        <input type="text" name="income_level" class="form-control" maxlength="80" value="<%= p.income_level || '' %>" placeholder="e.g. Medium, monthly range">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Housing Type</label>
+                        <select name="house_type" class="form-control">
+                            <option value="">Not specified</option>
+                            <option value="Owned" <%= sel('Owned', p.house_type) %>>Owned</option>
+                            <option value="Rented" <%= sel('Rented', p.house_type) %>>Rented</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h3 class="child-form-section-title">Identification</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">ID Type <span class="required-mark">*</span></label>
+                        <select name="identification_type" class="form-control" required>
+                            <option value="">Select</option>
+                            <option value="NIN" <%= sel('NIN', p.identification_type) %>>NIN</option>
+                            <option value="Passport" <%= sel('Passport', p.identification_type) %>>Passport</option>
+                            <option value="Driver License" <%= sel('Driver License', p.identification_type) %>>Driver License</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ID Number <span class="required-mark">*</span></label>
+                        <input type="text" name="identification_number" class="form-control" required maxlength="120" value="<%= p.identification_number || '' %>">
+                    </div>
+                </div>
+                
+                <h3 class="child-form-section-title">Additional Context</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Child Age</label>
+                        <input type="number" min="0" name="child_age" class="form-control" value="<%= p.child_age || '' %>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Child Gender</label>
+                        <select name="child_gender" class="form-control">
+                            <option value="">Select</option>
+                            <option value="Male" <%= sel('Male', p.child_gender) %>>Male</option>
+                            <option value="Female" <%= sel('Female', p.child_gender) %>>Female</option>
+                            <option value="Unknown" <%= sel('Unknown', p.child_gender) %>>Unknown</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Why do you want to adopt? / Any other notes</label>
+                    <textarea name="notes" class="form-control" rows="4" placeholder="Share your motivation for adoption..."><%= p.notes || '' %></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Upload Supporting Document</label>
+                    <input type="file" name="supporting_doc" class="form-control" accept="application/pdf,image/*">
+                    <span style="display:block; margin-top: 6px; color: var(--text-muted); font-size: 13px;">PDF or image, max 5MB.</span>
+                </div>
+
+                <button type="submit" class="btn-submit"><i class="fa-solid fa-paper-plane mr-2"></i> Submit Application</button>
+            </form>
+        <% } %>
+    </div>
+    <script>
+        (function () {
+            var country = document.getElementById('adopter_nationality');
+            var phone = document.getElementById('adopter_phone');
+            if (!country || !phone) return;
+            var cfg = {
+                Ghana: { code: '+233', example: '+233XXXXXXXXX' },
+                Nigeria: { code: '+234', example: '+234XXXXXXXXXX' },
+                Kenya: { code: '+254', example: '+254XXXXXXXXX' },
+                'United States': { code: '+1', example: '+1XXXXXXXXXX' },
+                'United Kingdom': { code: '+44', example: '+44XXXXXXXXXX' }
+            };
+            function updatePhoneRules() {
+                var selected = cfg[country.value];
+                if (!selected) {
+                    phone.placeholder = '';
+                    phone.removeAttribute('pattern');
+                    return;
+                }
+                phone.placeholder = selected.example;
+                phone.pattern = '^\\' + selected.code + '\\d+$|^0\\d+$';
+            }
+            country.addEventListener('change', updatePhoneRules);
+            updatePhoneRules();
+        })();
+    </script>
+</body>
+</html>

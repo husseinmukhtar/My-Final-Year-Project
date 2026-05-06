@@ -1,0 +1,51 @@
+<div class="page-title" style="margin-bottom: 24px;">Public Reports</div>
+
+<form action="/admin/public-reports" method="GET" class="filter-bar">
+    <div class="filter-group">
+        <input type="text" name="search" placeholder="Search reports..." value="<%= search || '' %>">
+    </div>
+    <div class="filter-group">
+        <select name="status">
+            <option value="">All statuses</option>
+            <% ['Pending','Approved','Rejected'].forEach(function (status) { %>
+                <option value="<%= status %>" <%= statusFilter === status ? 'selected' : '' %>><%= status %></option>
+            <% }); %>
+        </select>
+    </div>
+    <button class="btn btn-secondary" type="submit">Filter</button>
+</form>
+
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Reporter</th>
+                <th>Phone</th>
+                <th>Location</th>
+                <th>Child Age</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (reports && reports.length) { %>
+                <% reports.forEach(function (report) { %>
+                    <tr>
+                        <td>#<%= report.id %></td>
+                        <td><%= report.reporter_name %></td>
+                        <td><%= report.reporter_phone %></td>
+                        <td><%= report.location %></td>
+                        <td><%= report.child_age_estimate || 'N/A' %></td>
+                        <td><span class="badge bg-secondary"><%= report.status %></span></td>
+                        <td><%= report.created_at ? String(report.created_at).slice(0, 10) : '' %></td>
+                        <td><a class="btn btn-secondary btn-sm" href="/admin/public-reports/<%= report.id %>">View</a></td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr><td colspan="7" class="text-center p-4">No public reports found.</td></tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>

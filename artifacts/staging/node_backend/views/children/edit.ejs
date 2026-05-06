@@ -1,0 +1,75 @@
+<%- include('../partials/header', { pageTitle: 'Edit Child Record', activePage: 'children' }) %>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Edit Child Record
+</div>
+
+<div class="card form-container">
+    <form action="/children/<%= child.id %>" method="POST" class="validate-form" novalidate>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" value="<%= child.name %>" required placeholder="John Doe">
+                <span class="helper-text">Ensure full legal name is provided</span>
+                <span class="invalid-feedback">Please enter the child's full name.</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Age</label>
+                <input type="number" name="age" class="form-control" value="<%= child.age %>" required min="0" max="18" placeholder="e.g. 5">
+                <span class="helper-text">Must be between 0 and 18 years</span>
+                <span class="invalid-feedback">Please provide a valid age between 0 and 18.</span>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select name="gender" class="form-control" required>
+                    <option value="Male" <%= child.gender === 'Male' ? 'selected' : '' %>>Male</option>
+                    <option value="Female" <%= child.gender === 'Female' ? 'selected' : '' %>>Female</option>
+                    <option value="Other" <%= child.gender === 'Other' ? 'selected' : '' %>>Other</option>
+                </select>
+                <span class="invalid-feedback">Please select a gender.</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control" required>
+                    <option value="Available" <%= child.status === 'Available' ? 'selected' : '' %>>Available</option>
+                    <option value="Adopted" <%= child.status === 'Adopted' ? 'selected' : '' %>>Adopted</option>
+                    <option value="Pending" <%= child.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="Processing" <%= child.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                </select>
+                <span class="invalid-feedback">Please select a status.</span>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/children" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Discard Changes
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i> Update Child
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const forms = document.querySelectorAll('.validate-form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,195 @@
+<div class="page-title" style="margin-bottom: 8px;">
+    System Statistics Overview
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <p style="color: var(--text-muted); margin: 0;">Overview of core records and aggregated activities in the orphanage management system.</p>
+    <div class="export-actions" style="display: flex; gap: 10px;">
+        <a href="/reports/export/children" class="btn btn-secondary"><i class="fa-solid fa-file-csv"></i> Export Children</a>
+        <a href="/reports/export/donations" class="btn btn-secondary"><i class="fa-solid fa-file-csv"></i> Export Donations</a>
+        <a href="/reports/export/adoptions" class="btn btn-secondary"><i class="fa-solid fa-file-csv"></i> Export Adoptions (CSV)</a>
+        <a href="/reports/export/adoptions-print" target="_blank" rel="noopener" class="btn btn-secondary"><i class="fa-solid fa-file-pdf"></i> Adoptions (Print / PDF)</a>
+    </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+    
+    <div class="stat-card">
+        <div class="stat-icon primary"><i class="fa-solid fa-child-reaching"></i></div>
+        <div class="stat-info">
+            <h3>Registered Children</h3>
+            <p><%= stats.childrenCount %></p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon secondary" style="background-color: rgba(99, 102, 241, 0.15); color: #818cf8;"><i class="fa-solid fa-user-tie"></i></div>
+        <div class="stat-info">
+            <h3>Active Staff</h3>
+            <p><%= stats.staffCount %></p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background-color: rgba(234, 179, 8, 0.15); color: #facc15;"><i class="fa-solid fa-hand-holding-heart"></i></div>
+        <div class="stat-info">
+            <h3>Total Donations</h3>
+            <p><%= stats.donationsCount %></p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success" style="background-color: rgba(16, 185, 129, 0.15); color: #34d399;"><i class="fa-solid fa-file-signature"></i></div>
+        <div class="stat-info">
+            <h3>Adoption records</h3>
+            <p><%= stats.adoptionCount %></p>
+        </div>
+    </div>
+
+    <div class="stat-card" style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 30px;">
+        <div class="stat-info" style="margin-left: 0;">
+            <p style="text-transform: uppercase; font-size: 11px; letter-spacing: 1px; margin-bottom: 8px; color: var(--text-muted);">Cumulative Capital Raised</p>
+            <%
+               const totalUSD = Number(stats.totalDonationAmountUSD || 0);
+               const totalNGN = Number(stats.totalDonationAmountNGN || 0);
+               const formattedUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalUSD);
+               const formattedNGN = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(totalNGN);
+            %>
+            <h3 style="font-size: 32px; color: var(--text-main); margin-bottom: 6px;"><%= formattedNGN %></h3>
+            <p style="margin: 0; font-size: 20px; color: var(--text-muted);"><%= formattedUSD %></p>
+        </div>
+    </div>
+
+</div>
+
+<!-- CHARTS SECTION -->
+<div class="page-title" style="margin-top: 40px; margin-bottom: 20px; font-size: 22px;">
+    <i class="fa-solid fa-chart-pie" style="color: var(--text-muted); margin-right: 10px;"></i>
+    Data Visualizations
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 40px;">
+    <div class="card" style="margin: 0; padding: 20px;">
+        <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">Monthly Donations Trend</h3>
+        <div style="position: relative; height: 350px;">
+            <canvas id="monthlyDonationsChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="card" style="margin: 0; padding: 20px;">
+        <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">Children By Status</h3>
+        <div style="position: relative; height: 350px;">
+            <canvas id="childrenStatusChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const _donations = <%- JSON.stringify(monthlyDonations || []) %>;
+        const _childStatus = <%- JSON.stringify(childrenByStatus || []) %>;
+
+        function loadChart(ctxId, type, _labels, _data, overrideOptions = {}) {
+            const hasData = _data && _data.some(v => v > 0);
+            const labels = hasData ? _labels : ['No Data'];
+            const data = hasData ? _data : [1];
+            let bgColor = overrideOptions.bgColor || ['#e2e8f0'];
+
+            if (hasData) {
+                if (type === 'line' || type === 'bar') {
+                    bgColor = overrideOptions.color || '#6366f1';
+                } else {
+                    bgColor = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
+                }
+            }
+
+            const ctx = document.getElementById(ctxId).getContext('2d');
+            return new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: overrideOptions.label || '',
+                        data: data,
+                        backgroundColor: bgColor,
+                        borderColor: overrideOptions.borderColor || (type === 'line' ? overrideOptions.color : '#fff'),
+                        borderWidth: type === 'line' ? 3 : (type === 'bar' ? 0 : 2),
+                        fill: overrideOptions.fill || false,
+                        tension: overrideOptions.tension || 0,
+                        borderRadius: type === 'bar' ? 4 : 0,
+                        pointBackgroundColor: type === 'line' ? overrideOptions.color : undefined
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            display: (type === 'pie' || type === 'doughnut') && hasData,
+                            position: 'bottom',
+                            labels: { padding: 20, color: '#6b7280' }
+                        },
+                        tooltip: { enabled: hasData }
+                    },
+                    scales: (type === 'line' || type === 'bar') ? {
+                        y: { beginAtZero: true, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    } : {}
+                }
+            });
+        }
+
+        loadChart('monthlyDonationsChart', 'line', _donations.map(d=>d.month), _donations.map(d=>d.total), {
+            label: 'Donation Amount', color: '#34d399', fill: true, tension: 0.3, bgColor: 'rgba(52, 211, 153, 0.15)'
+        });
+        loadChart('childrenStatusChart', 'doughnut', _childStatus.map(d=>d.status || 'Unknown'), _childStatus.map(d=>d.count));
+    });
+</script>
+
+<!-- RECENT ACTIVITY SECTION -->
+<div class="page-title" style="margin-top: 40px; margin-bottom: 20px; font-size: 22px;">
+    <i class="fa-solid fa-clock-rotate-left" style="color: var(--text-muted); margin-right: 10px;"></i>
+    Recent Adoption Applications
+</div>
+
+<div class="table-wrapper" style="margin-bottom: 40px;">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>Applicant Name</th>
+                <th>Child Requested</th>
+                <th>Status</th>
+                <th>Application Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (stats.recentRequests && stats.recentRequests.length > 0) { %>
+                <% stats.recentRequests.forEach(req => { %>
+                    <tr>
+                        <td style="font-weight: 500;"><%= req.applicant_name %></td>
+                        <td><%= req.child_name %></td>
+                        <td>
+                            <span class="status-tag status-<%= req.status %>"><%= req.status %></span>
+                        </td>
+                        <% 
+                            let displayDate = req.request_date;
+                            if (displayDate instanceof Date) {
+                                const y = displayDate.getFullYear();
+                                const m = String(displayDate.getMonth() + 1).padStart(2, '0');
+                                const d = String(displayDate.getDate()).padStart(2, '0');
+                                displayDate = `${y}-${m}-${d}`;
+                            }
+                        %>
+                        <td style="color: var(--text-muted);"><%= displayDate %></td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        No recent adoption requests found.
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>

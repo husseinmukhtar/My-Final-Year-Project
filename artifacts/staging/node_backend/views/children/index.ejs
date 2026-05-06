@@ -1,0 +1,86 @@
+<%- include('../partials/header', { pageTitle: 'Children List', activePage: 'children' }) %>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Children Directory
+</div>
+
+<!-- FILTER BAR -->
+<form action="/children" method="GET" class="filter-bar">
+    <div class="filter-group">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); padding-left: 10px; position: absolute;"></i>
+        <input type="text" name="search" placeholder="Search by name..." value="<%= search || '' %>" style="padding-left: 36px;">
+    </div>
+    <div class="filter-group">
+        <select name="status">
+            <option value="">All Statuses</option>
+            <option value="Available" <%= statusFilter === 'Available' ? 'selected' : '' %>>Available</option>
+            <option value="Adopted" <%= statusFilter === 'Adopted' ? 'selected' : '' %>>Adopted</option>
+            <option value="Pending" <%= statusFilter === 'Pending' ? 'selected' : '' %>>Pending</option>
+            <option value="Processing" <%= statusFilter === 'Processing' ? 'selected' : '' %>>Processing</option>
+        </select>
+    </div>
+    <div class="filter-group" style="flex: 0;">
+        <button type="submit" class="btn btn-secondary">
+            Filter
+        </button>
+        <% if (search || statusFilter) { %>
+            <a href="/children" class="btn btn-danger" style="margin-left: 10px; font-weight: normal;">
+                <i class="fa-solid fa-xmark"></i> Clear
+            </a>
+        <% } %>
+    </div>
+</form>
+
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (children.length > 0) { %>
+                <% children.forEach(child => { %>
+                    <tr>
+                        <td><strong style="color: var(--text-muted);">#<%= child.id %></strong></td>
+                        <td style="font-weight: 500;"><%= child.name %></td>
+                        <td><%= child.age %> yrs</td>
+                        <td><%= child.gender %></td>
+                        <td>
+                            <span class="status-tag status-<%= child.status %>">
+                                <%= child.status %>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                <a href="/children/<%= child.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <form action="/children/<%= child.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
+                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px;">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                        <i class="fa-solid fa-magnifying-glass" style="font-size: 40px; margin-bottom: 20px; display: block; opacity: 0.3;"></i>
+                        <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-main);">No children found</h3>
+                        <p>Try clearing your filters or <a href="/children/new" style="color: var(--primary);">adding a new child</a>.</p>
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,135 @@
+/* Detailed child registration (tabs + wide layout) */
+.child-form-wide {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.child-form-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.child-form-tab {
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.child-form-tab:hover {
+  color: var(--text-main);
+  border-color: #c7d2fe;
+}
+
+.child-form-tab.active {
+  background: #eef2ff;
+  color: var(--primary);
+  border-color: #a5b4fc;
+}
+
+.child-form-panel {
+  display: none;
+  animation: fadeIn 0.2s ease;
+}
+
+.child-form-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.child-form-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 8px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .form-row-3 { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr !important; }
+}
+
+.photo-preview-wrap {
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.photo-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: var(--background);
+  display: none;
+}
+
+.photo-preview.visible {
+  display: block;
+}
+
+.alert-info {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.child-form-meta-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.tab-nav-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.tab-nav-actions .tab-prev-next {
+  display: flex;
+  gap: 8px;
+}
+
+.required-mark {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.child-form-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}

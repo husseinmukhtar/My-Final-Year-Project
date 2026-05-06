@@ -1,0 +1,97 @@
+<%- include('../partials/header', { pageTitle: 'Adoption Requests', activePage: 'adoptions' }) %>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Adoption Requests Management
+</div>
+
+<!-- FILTER BAR -->
+<form action="/adoptions" method="GET" class="filter-bar">
+    <div class="filter-group">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); padding-left: 10px; position: absolute;"></i>
+        <input type="text" name="search" placeholder="Search by applicant name..." value="<%= search || '' %>" style="padding-left: 36px;">
+    </div>
+    <div class="filter-group" style="flex: 0;">
+        <button type="submit" class="btn btn-secondary">
+            Search
+        </button>
+        <% if (search) { %>
+            <a href="/adoptions" class="btn btn-danger" style="margin-left: 10px; font-weight: normal;">
+                <i class="fa-solid fa-xmark"></i> Clear
+            </a>
+        <% } %>
+    </div>
+</form>
+
+<div style="margin-bottom: 24px;">
+    <a href="/adoptions/new" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Add New Request
+    </a>
+</div>
+
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Applicant Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Child Name</th>
+                <th>Status</th>
+                <th>Request Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (adoptions.length > 0) { %>
+                <% adoptions.forEach(adoption => { %>
+                    <tr>
+                        <td><strong style="color: var(--text-muted);">#<%= adoption.id %></strong></td>
+                        <td style="font-weight: 500;"><%= adoption.applicant_name %></td>
+                        <td><%= adoption.email %></td>
+                        <td><%= adoption.phone %></td>
+                        <td><%= adoption.child_name %></td>
+                        <td>
+                            <span class="status-tag status-<%= adoption.status %>">
+                                <%= adoption.status %>
+                            </span>
+                        </td>
+                        <% 
+                            let displayDate = adoption.request_date;
+                            if (displayDate instanceof Date) {
+                                const y = displayDate.getFullYear();
+                                const m = String(displayDate.getMonth() + 1).padStart(2, '0');
+                                const d = String(displayDate.getDate()).padStart(2, '0');
+                                displayDate = `${y}-${m}-${d}`;
+                            }
+                        %>
+                        <td><%= displayDate %></td>
+                        <td>
+                            <div class="actions-cell">
+                                <a href="/adoptions/<%= adoption.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <!-- Using strictly confirmDeletion(event) like the children module -->
+                                <form action="/adoptions/<%= adoption.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
+                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px;">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                        <i class="fa-solid fa-file-circle-xmark" style="font-size: 40px; margin-bottom: 20px; display: block; opacity: 0.3;"></i>
+                        <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-main);">No requests found</h3>
+                        <p>No adoption requests match your search or currently exist.</p>
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

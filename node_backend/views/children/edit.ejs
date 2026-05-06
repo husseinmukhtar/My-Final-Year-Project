@@ -1,0 +1,473 @@
+<%- include('../partials/header', { pageTitle: 'Edit Child Record', activePage: 'children', extraCss: '/css/child-form.css' }) %>
+
+<% const prefill = child || {}; %>
+<% const sel = (val, cur) => (String(cur || '') === String(val || '') ? 'selected' : ''); %>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Edit Child Record
+</div>
+
+<div class="card form-container child-form-wide">
+    <p class="child-form-meta-hint" style="margin-bottom: 20px;">
+        Update registration details. Required fields are marked with <span class="required-mark">*</span>.
+        <strong>Last updated</strong> is maintained automatically; <strong>Created by</strong> is preserved from the original registration.
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; font-size: 13px; color: var(--text-muted); margin-bottom: 22px; padding: 14px 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div><strong style="color: var(--text-main);">Date created</strong><br><%= child.created_at ? String(child.created_at).replace('T', ' ').slice(0, 19) : '—' %></div>
+        <div><strong style="color: var(--text-main);">Last updated</strong><br><%= child.updated_at ? String(child.updated_at).replace('T', ' ').slice(0, 19) : '—' %></div>
+        <div><strong style="color: var(--text-main);">Created by</strong><br><%= child.created_by_name || (child.created_by_user_id ? ('User #' + child.created_by_user_id) : '—') %></div>
+    </div>
+
+    <form id="childForm" action="/children/<%= child.id %>" method="POST" enctype="multipart/form-data" class="validate-form" novalidate>
+
+        <div class="child-form-tabs" role="tablist">
+            <button type="button" class="child-form-tab active" data-tab="0" role="tab">1. Basic</button>
+            <button type="button" class="child-form-tab" data-tab="1" role="tab">2. Identification</button>
+            <button type="button" class="child-form-tab" data-tab="2" role="tab">3. Guardian</button>
+            <button type="button" class="child-form-tab" data-tab="3" role="tab">4. Health</button>
+            <button type="button" class="child-form-tab" data-tab="4" role="tab">5. Education</button>
+            <button type="button" class="child-form-tab" data-tab="5" role="tab">6. Accommodation</button>
+            <button type="button" class="child-form-tab" data-tab="6" role="tab">7. Legal</button>
+            <button type="button" class="child-form-tab" data-tab="7" role="tab">8. Notes</button>
+        </div>
+
+        <div class="child-form-panel active" data-panel="0">
+            <h3 class="child-form-section-title">Basic information</h3>
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label">First name <span class="required-mark">*</span></label>
+                    <input type="text" name="first_name" class="form-control" required maxlength="120" value="<%= prefill.first_name || '' %>">
+                    <span class="invalid-feedback">Required.</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Middle name</label>
+                    <input type="text" name="middle_name" class="form-control" maxlength="120" value="<%= prefill.middle_name || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last name <span class="required-mark">*</span></label>
+                    <input type="text" name="last_name" class="form-control" required maxlength="120" value="<%= prefill.last_name || '' %>">
+                    <span class="invalid-feedback">Required.</span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Gender <span class="required-mark">*</span></label>
+                    <select name="gender" id="gender" class="form-control" required>
+                        <option value="" <%= !prefill.gender ? 'selected' : '' %>>Select gender</option>
+                        <% if (prefill.gender === 'Other') { %>
+                        <option value="Other" <%= sel('Other', prefill.gender) %>>Other</option>
+                        <% } %>
+                        <option value="Male" <%= sel('Male', prefill.gender) %>>Male</option>
+                        <option value="Female" <%= sel('Female', prefill.gender) %>>Female</option>
+                    </select>
+                    <span class="invalid-feedback">Required.</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date of birth <span class="required-mark">*</span></label>
+                    <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" required value="<%= prefill.date_of_birth ? String(prefill.date_of_birth).slice(0,10) : '' %>">
+                    <span class="helper-text">Age: <strong id="age_live">—</strong></span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Place of birth</label>
+                    <input type="text" name="place_of_birth" class="form-control" maxlength="200" value="<%= prefill.place_of_birth || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nationality</label>
+                    <select name="nationality" class="form-control">
+                        <option value="Nigerian" <%= sel('Nigerian', prefill.nationality || 'Nigerian') %>>Nigerian</option>
+                        <option value="Non-Nigerian" <%= sel('Non-Nigerian', prefill.nationality) %>>Non-Nigerian</option>
+                        <option value="Other" <%= sel('Other', prefill.nationality) %>>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">State of origin</label>
+                <select name="state_of_origin" class="form-control">
+                    <option value="">Select State</option>
+                    <% const states = ['Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara', 'FCT - Abuja']; %>
+                    <% states.forEach(function(state) { %>
+                        <option value="<%= state %>" <%= sel(state, prefill.state_of_origin) %>><%= state %></option>
+                    <% }); %>
+                </select>
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="1">
+            <h3 class="child-form-section-title">Identification details</h3>
+            <div class="form-group">
+                <label class="form-label">Child ID</label>
+                <input type="text" class="form-control" readonly value="<%= prefill.child_public_id || 'Not yet assigned' %>">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Admission date <span class="required-mark">*</span></label>
+                    <input type="date" name="admission_date" class="form-control" required value="<%= prefill.admission_date ? String(prefill.admission_date).slice(0,10) : '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Registration number</label>
+                    <input type="text" name="registration_number" class="form-control" maxlength="120" value="<%= prefill.registration_number || '' %>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Passport photograph</label>
+                <input type="file" name="passport_photo" id="passport_photo" class="form-control" accept="image/jpeg,image/png,image/webp,image/gif">
+                <div class="photo-preview-wrap">
+                    <img id="passport_preview" class="photo-preview" alt="Preview">
+                    <% if (prefill.passport_photo_path) { %>
+                        <div>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">Current file:</p>
+                            <img src="<%= prefill.passport_photo_path %>" alt="Current passport" class="photo-preview visible" style="display:block;">
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="2">
+            <h3 class="child-form-section-title">Parent / guardian information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Father’s name</label>
+                    <input type="text" name="father_name" class="form-control" maxlength="200" value="<%= prefill.father_name || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mother’s name</label>
+                    <input type="text" name="mother_name" class="form-control" maxlength="200" value="<%= prefill.mother_name || '' %>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Guardian name</label>
+                <input type="text" name="guardian_name" class="form-control" maxlength="200" value="<%= prefill.guardian_name || '' %>">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone number <span class="required-mark">*</span></label>
+                <input type="tel" name="guardian_phone" id="guardian_phone" class="form-control" required value="<%= prefill.guardian_phone || '+234 ' %>">
+                <span class="invalid-feedback">Valid phone required.</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address <span class="required-mark">*</span></label>
+                <textarea name="guardian_address" class="form-control" rows="3" required><%= prefill.guardian_address || '' %></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Relationship to child <span class="required-mark">*</span></label>
+                    <input type="text" name="relationship_to_child" class="form-control" required maxlength="120" value="<%= prefill.relationship_to_child || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status <span class="required-mark">*</span></label>
+                    <select name="family_status" class="form-control" required>
+                        <option value="" <%= !prefill.family_status ? 'selected' : '' %>>Select status</option>
+                        <option value="Orphan" <%= sel('Orphan', prefill.family_status) %>>Orphan</option>
+                        <option value="Single Parent" <%= sel('Single Parent', prefill.family_status) %>>Single Parent</option>
+                        <option value="Abandoned" <%= sel('Abandoned', prefill.family_status) %>>Abandoned</option>
+                        <option value="Foster Care" <%= sel('Foster Care', prefill.family_status) %>>Foster Care</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="3">
+            <h3 class="child-form-section-title">Health &amp; medical information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Blood group</label>
+                    <select name="blood_group" class="form-control">
+                        <option value="">Unknown / not tested</option>
+                        <option value="A+" <%= sel('A+', prefill.blood_group) %>>A+</option>
+                        <option value="A-" <%= sel('A-', prefill.blood_group) %>>A-</option>
+                        <option value="B+" <%= sel('B+', prefill.blood_group) %>>B+</option>
+                        <option value="B-" <%= sel('B-', prefill.blood_group) %>>B-</option>
+                        <option value="AB+" <%= sel('AB+', prefill.blood_group) %>>AB+</option>
+                        <option value="AB-" <%= sel('AB-', prefill.blood_group) %>>AB-</option>
+                        <option value="O+" <%= sel('O+', prefill.blood_group) %>>O+</option>
+                        <option value="O-" <%= sel('O-', prefill.blood_group) %>>O-</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Genotype</label>
+                    <select name="genotype" class="form-control">
+                        <option value="">Unknown</option>
+                        <option value="AA" <%= sel('AA', prefill.genotype) %>>AA</option>
+                        <option value="AS" <%= sel('AS', prefill.genotype) %>>AS</option>
+                        <option value="AC" <%= sel('AC', prefill.genotype) %>>AC</option>
+                        <option value="SS" <%= sel('SS', prefill.genotype) %>>SS</option>
+                        <option value="SC" <%= sel('SC', prefill.genotype) %>>SC</option>
+                        <option value="CC" <%= sel('CC', prefill.genotype) %>>CC</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Known allergies</label>
+                <textarea name="known_allergies" class="form-control" rows="2"><%= prefill.known_allergies || '' %></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Medical conditions</label>
+                <textarea name="medical_conditions" class="form-control" rows="2"><%= prefill.medical_conditions || '' %></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Disability</label>
+                    <select name="disability" id="disability" class="form-control">
+                        <option value="No" <%= sel('No', prefill.disability || 'No') %>>No</option>
+                        <option value="Yes" <%= sel('Yes', prefill.disability) %>>Yes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Disability description</label>
+                    <input type="text" name="disability_description" id="disability_description" class="form-control" maxlength="500" value="<%= prefill.disability_description || '' %>">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Last medical check-up</label>
+                    <input type="date" name="last_medical_checkup" class="form-control" value="<%= prefill.last_medical_checkup ? String(prefill.last_medical_checkup).slice(0,10) : '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hospital or doctor</label>
+                    <input type="text" name="hospital_or_doctor" class="form-control" maxlength="255" value="<%= prefill.hospital_or_doctor || '' %>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Vaccination status</label>
+                <select name="vaccination_status" class="form-control">
+                    <option value="">Not specified</option>
+                    <option value="Up-to-date" <%= sel('Up-to-date', prefill.vaccination_status) %>>Up-to-date</option>
+                    <option value="Not complete" <%= sel('Not complete', prefill.vaccination_status) %>>Not complete</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="4">
+            <h3 class="child-form-section-title">Education information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Current school</label>
+                    <input type="text" name="current_school" class="form-control" maxlength="255" value="<%= prefill.current_school || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Class / grade</label>
+                    <input type="text" name="class_grade" class="form-control" maxlength="80" value="<%= prefill.class_grade || '' %>">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Enrollment status</label>
+                    <select name="enrollment_status" class="form-control">
+                        <option value="">Not specified</option>
+                        <option value="Active" <%= sel('Active', prefill.enrollment_status) %>>Active</option>
+                        <option value="Not Enrolled" <%= sel('Not Enrolled', prefill.enrollment_status) %>>Not Enrolled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Academic level</label>
+                    <select name="academic_level" class="form-control">
+                        <option value="">Not specified</option>
+                        <option value="Primary" <%= sel('Primary', prefill.academic_level) %>>Primary</option>
+                        <option value="Secondary" <%= sel('Secondary', prefill.academic_level) %>>Secondary</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Special learning needs</label>
+                <textarea name="special_learning_needs" class="form-control" rows="2"><%= prefill.special_learning_needs || '' %></textarea>
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="5">
+            <h3 class="child-form-section-title">Accommodation details</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Assigned dormitory / room</label>
+                    <select name="dormitory_room" class="form-control">
+                        <% dormitories.forEach(function (d) { %>
+                            <option value="<%= d %>" <%= sel(d, prefill.dormitory_room) %>><%= d %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bed number</label>
+                    <input type="text" name="bed_number" class="form-control" maxlength="40" value="<%= prefill.bed_number || '' %>">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Date assigned</label>
+                    <input type="date" name="date_assigned_accommodation" class="form-control" value="<%= prefill.date_assigned_accommodation ? String(prefill.date_assigned_accommodation).slice(0,10) : '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Caregiver assigned</label>
+                    <input type="text" name="caregiver_assigned" class="form-control" maxlength="200" value="<%= prefill.caregiver_assigned || '' %>">
+                </div>
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="6">
+            <h3 class="child-form-section-title">Legal information</h3>
+            <div class="form-group">
+                <label class="form-label">Admission reason <span class="required-mark">*</span></label>
+                <textarea name="admission_reason" class="form-control" rows="3" required><%= prefill.admission_reason || '' %></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Case file number</label>
+                    <input type="text" name="case_file_number" class="form-control" maxlength="120" value="<%= prefill.case_file_number || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Legal guardian approval <span class="required-mark">*</span></label>
+                    <select name="legal_guardian_approval" class="form-control" required>
+                        <option value="" <%= !prefill.legal_guardian_approval ? 'selected' : '' %>>Select</option>
+                        <option value="Yes" <%= sel('Yes', prefill.legal_guardian_approval) %>>Yes</option>
+                        <option value="No" <%= sel('No', prefill.legal_guardian_approval) %>>No</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Supporting documents (PDF / Word only)</label>
+                <input type="file" name="supporting_document" class="form-control" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                <span class="helper-text"><% if (prefill.supporting_document_path) { %><a href="<%= prefill.supporting_document_path %>" target="_blank" rel="noopener">View current document</a><% } else { %>No document on file.<% } %></span>
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="7">
+            <h3 class="child-form-section-title">Additional notes</h3>
+            <div class="form-group">
+                <label class="form-label">Behavior notes</label>
+                <textarea name="behavior_notes" class="form-control" rows="3"><%= prefill.behavior_notes || '' %></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Special needs</label>
+                <textarea name="special_needs_notes" class="form-control" rows="3"><%= prefill.special_needs_notes || '' %></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Staff remarks</label>
+                <textarea name="staff_remarks" class="form-control" rows="3"><%= prefill.staff_remarks || '' %></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">System status <span class="required-mark">*</span></label>
+                <select name="status" class="form-control" required>
+                    <option value="Available" <%= sel('Available', prefill.status) %>>Available</option>
+                    <option value="Adopted" <%= sel('Adopted', prefill.status) %>>Adopted</option>
+                    <option value="Pending" <%= sel('Pending', prefill.status) %>>Pending</option>
+                    <option value="Processing" <%= sel('Processing', prefill.status) %>>Processing</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="tab-nav-actions">
+            <div class="tab-prev-next">
+                <button type="button" class="btn btn-secondary" id="tab_prev"><i class="fa-solid fa-chevron-left"></i> Previous</button>
+                <button type="button" class="btn btn-secondary" id="tab_next">Next <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <span style="font-size: 13px; color: var(--text-muted);">Tab <span id="tab_index">1</span> / 8</span>
+        </div>
+
+        <div class="child-form-footer-actions">
+            <a href="/children" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i> Update child
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    const tabs = document.querySelectorAll('.child-form-tab');
+    const panels = document.querySelectorAll('.child-form-panel');
+    let current = 0;
+    function showTab(i) {
+        current = Math.max(0, Math.min(i, tabs.length - 1));
+        tabs.forEach((t, idx) => t.classList.toggle('active', idx === current));
+        panels.forEach((p, idx) => p.classList.toggle('active', idx === current));
+        const el = document.getElementById('tab_index');
+        if (el) el.textContent = String(current + 1);
+    }
+    tabs.forEach((btn) => btn.addEventListener('click', function () { showTab(parseInt(btn.getAttribute('data-tab'), 10)); }));
+    document.getElementById('tab_prev').addEventListener('click', function () { showTab(current - 1); });
+    document.getElementById('tab_next').addEventListener('click', function () { showTab(current + 1); });
+
+    function calcAge(dobStr) {
+        if (!dobStr) return '—';
+        const birth = new Date(dobStr);
+        if (isNaN(birth.getTime())) return '—';
+        const today = new Date();
+        let y = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) y--;
+        return y < 0 ? '—' : y + ' yrs';
+    }
+    const dobInput = document.getElementById('date_of_birth');
+    const ageLive = document.getElementById('age_live');
+    function refreshAge() { if (ageLive) ageLive.textContent = calcAge(dobInput && dobInput.value); }
+    if (dobInput) {
+        dobInput.addEventListener('change', refreshAge);
+        dobInput.addEventListener('input', refreshAge);
+        refreshAge();
+    }
+    const passportInput = document.getElementById('passport_photo');
+    const passportPreview = document.getElementById('passport_preview');
+    if (passportInput && passportPreview) {
+        passportInput.addEventListener('change', function () {
+            passportPreview.classList.remove('visible');
+            passportPreview.removeAttribute('src');
+            const f = passportInput.files && passportInput.files[0];
+            if (!f) return;
+            if (!/^image\/(jpeg|png|webp|gif)$/i.test(f.type)) {
+                alert('Please choose a JPG, PNG, WEBP, or GIF image.');
+                passportInput.value = '';
+                return;
+            }
+            passportPreview.src = URL.createObjectURL(f);
+            passportPreview.classList.add('visible');
+        });
+    }
+    const docInput = document.querySelector('input[name="supporting_document"]');
+    if (docInput) {
+        docInput.addEventListener('change', function () {
+            const f = docInput.files && docInput.files[0];
+            if (!f) return;
+            const ok = /(pdf|msword|wordprocessingml)/i.test(f.type) || /\.(pdf|doc|docx)$/i.test(f.name);
+            if (!ok) {
+                alert('Supporting documents must be PDF or Word (.doc / .docx).');
+                docInput.value = '';
+            }
+        });
+    }
+    function phoneOk(s) {
+        const d = String(s || '').replace(/\D/g, '');
+        return d.length >= 10 && d.length <= 15;
+    }
+    const form = document.getElementById('childForm');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            let ok = true;
+            ['first_name', 'last_name', 'gender', 'date_of_birth', 'admission_date', 'guardian_phone', 'guardian_address', 'relationship_to_child', 'family_status', 'admission_reason', 'legal_guardian_approval', 'status'].forEach(function (name) {
+                const el = form.querySelector('[name="' + name + '"]');
+                if (!el) return;
+                if (!String(el.value || '').trim()) ok = false;
+            });
+            const gphone = form.querySelector('[name="guardian_phone"]');
+            if (gphone && !phoneOk(gphone.value)) ok = false;
+            const gline = ['guardian_name', 'father_name', 'mother_name'].some(function (n) {
+                const el = form.querySelector('[name="' + n + '"]');
+                return el && String(el.value || '').trim();
+            });
+            if (!gline) ok = false;
+            const dis = form.querySelector('[name="disability"]');
+            const disd = form.querySelector('[name="disability_description"]');
+            if (dis && dis.value === 'Yes' && disd && !String(disd.value || '').trim()) ok = false;
+            if (!ok) {
+                e.preventDefault();
+                form.classList.add('was-validated');
+                alert('Please complete all required fields before saving.');
+                showTab(0);
+            }
+        });
+    }
+})();
+</script>
+
+<%- include('../partials/footer') %>

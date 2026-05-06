@@ -1,0 +1,127 @@
+<% 
+function directoryName(c) {
+    var parts = [c.first_name, c.middle_name, c.last_name].filter(function (x) { return x && String(x).trim(); }).join(' ').trim();
+    return parts || c.name || '—';
+}
+function directoryAge(c) {
+    if (c.date_of_birth) {
+        var b = new Date(c.date_of_birth);
+        if (!isNaN(b.getTime())) {
+            var today = new Date();
+            var y = today.getFullYear() - b.getFullYear();
+            var m = today.getMonth() - b.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < b.getDate())) y--;
+            if (y >= 0) return y + ' yrs';
+        }
+    }
+    if (c.age != null && c.age !== '') return c.age + ' yrs';
+    return '—';
+}
+%>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Children Directory
+</div>
+
+<!-- FILTER BAR -->
+<form action="/children" method="GET" class="filter-bar">
+    <div class="filter-group">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); padding-left: 10px; position: absolute;"></i>
+        <input type="text" name="search" placeholder="Search by name or Child ID…" value="<%= search || '' %>" style="padding-left: 36px;">
+    </div>
+    <div class="filter-group">
+        <select name="status">
+            <option value="">All Statuses</option>
+            <option value="Available" <%= statusFilter === 'Available' ? 'selected' : '' %>>Available</option>
+            <option value="Adopted" <%= statusFilter === 'Adopted' ? 'selected' : '' %>>Adopted</option>
+            <option value="Pending" <%= statusFilter === 'Pending' ? 'selected' : '' %>>Pending</option>
+            <option value="Processing" <%= statusFilter === 'Processing' ? 'selected' : '' %>>Processing</option>
+        </select>
+    </div>
+    <div class="filter-group" style="flex: 0;">
+        <button type="submit" class="btn btn-secondary">
+            Filter
+        </button>
+        <% if (search || statusFilter) { %>
+            <a href="/children" class="btn btn-danger" style="margin-left: 10px; font-weight: normal;">
+                <i class="fa-solid fa-xmark"></i> Clear
+            </a>
+        <% } %>
+    </div>
+</form>
+
+<div class="table-wrapper" style="overflow-x: auto; max-width: 100%; padding-bottom: 10px;">
+    <table class="custom-table" style="min-width: max-content; white-space: nowrap;">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Child ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Admission Date</th>
+                <th>Guardian Phone</th>
+                <th>Guardian Address</th>
+                <th>Relationship</th>
+                <th>Family Status</th>
+                <th>Admission Reason</th>
+                <th>Legal Approval</th>
+                <th>Status</th>
+                <th>Recorded by</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (children.length > 0) { %>
+                <% children.forEach(child => { %>
+                    <tr>
+                        <td><strong style="color: var(--text-muted);">#<%= child.id %></strong></td>
+                        <td style="font-size: 13px; color: var(--text-muted); font-weight: 600;"><%= child.child_public_id || '—' %></td>
+                        <td style="font-weight: 500;"><%= directoryName(child) %></td>
+                        <td><%= directoryAge(child) %></td>
+                        <td><%= child.gender %></td>
+                        <td>
+                            <% if (child.admission_date) { %>
+                                <%= new Date(child.admission_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                            <% } else { %>
+                                —
+                            <% } %>
+                        </td>
+                        <td><%= child.guardian_phone || '—' %></td>
+                        <td><div style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<%= child.guardian_address || '' %>"><%= child.guardian_address || '—' %></div></td>
+                        <td><%= child.relationship_to_child || '—' %></td>
+                        <td><%= child.family_status || '—' %></td>
+                        <td><div style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<%= child.admission_reason || '' %>"><%= child.admission_reason || '—' %></div></td>
+                        <td><%= child.legal_guardian_approval || '—' %></td>
+                        <td>
+                            <span class="status-tag status-<%= child.status %>">
+                                <%= child.status %>
+                            </span>
+                        </td>
+                        <td style="font-size: 13px; color: var(--text-muted);"><%= child.created_by_name || (child.created_by_user_id ? ('User #' + child.created_by_user_id) : '—') %></td>
+                        <td>
+                            <div class="actions-cell">
+                                <a href="/children/<%= child.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <form action="/children/<%= child.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
+                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px;">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="15" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                        <i class="fa-solid fa-magnifying-glass" style="font-size: 40px; margin-bottom: 20px; display: block; opacity: 0.3;"></i>
+                        <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-main);">No children found</h3>
+                        <p>Try clearing your filters or <a href="/children/new" style="color: var(--primary);">adding a new child</a>.</p>
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,162 @@
+<%- include('../partials/header', { pageTitle: 'Dashboard', activePage: 'dashboard' }) %>
+<% 
+function dashName(c) {
+    var parts = [c.first_name, c.middle_name, c.last_name].filter(function (x) { return x && String(x).trim(); }).join(' ').trim();
+    return parts || c.name || '—';
+}
+function dashAge(c) {
+    if (c.date_of_birth) {
+        var b = new Date(c.date_of_birth);
+        if (!isNaN(b.getTime())) {
+            var today = new Date();
+            var y = today.getFullYear() - b.getFullYear();
+            var m = today.getMonth() - b.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < b.getDate())) y--;
+            if (y >= 0) return y + ' yrs';
+        }
+    }
+    if (c.age != null && c.age !== '') return c.age + ' yrs';
+    return '—';
+}
+%>
+
+<div class="page-title" style="margin-bottom: 30px;">
+    Overview Statistics
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon primary"><i class="fa-solid fa-users"></i></div>
+        <div class="stat-info">
+            <h3>Total Children</h3>
+            <p><%= stats.total %></p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning"><i class="fa-solid fa-house-chimney-window"></i></div>
+        <div class="stat-info">
+            <h3>Active in System</h3>
+            <p><%= stats.active %></p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success"><i class="fa-solid fa-heart"></i></div>
+        <div class="stat-info">
+            <h3>Adopted</h3>
+            <p><%= stats.adopted %></p>
+        </div>
+    </div>
+
+    <% const adst = typeof adoptionStats !== 'undefined' && adoptionStats ? adoptionStats : { total: 0, pending: 0, accepted: 0, scheduled: 0 }; %>
+    <div class="stat-card">
+        <div class="stat-icon primary"><i class="fa-solid fa-file-signature"></i></div>
+        <div class="stat-info">
+            <h3>Total adoptions</h3>
+            <p><%= adst.total %></p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon warning"><i class="fa-solid fa-hourglass-half"></i></div>
+        <div class="stat-info">
+            <h3>Pending adoptions</h3>
+            <p><%= adst.pending %></p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;"><i class="fa-solid fa-thumbs-up"></i></div>
+        <div class="stat-info">
+            <h3>Accepted adoptions</h3>
+            <p><%= adst.accepted %></p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(14, 165, 233, 0.15); color: #0284c7;"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="stat-info">
+            <h3>Scheduled visits</h3>
+            <p><%= adst.scheduled %></p>
+        </div>
+    </div>
+    <% const repst = typeof reportedStats !== 'undefined' && reportedStats ? reportedStats : { totalReportedChildren: 0, pendingReports: 0 }; %>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;"><i class="fa-solid fa-child-reaching"></i></div>
+        <div class="stat-info">
+            <h3>Total Reported Children</h3>
+            <p><%= repst.totalReportedChildren || 0 %></p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="stat-info">
+            <h3>Pending Reports</h3>
+            <p><%= repst.pendingReports || 0 %></p>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 30px;">
+    <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">Welcome Back!</h2>
+    <p style="color: var(--text-muted); margin-bottom: 24px;">The orphanage management system is fully operational. You can use the sidebar to navigate records, update statuses, or add new children into the system.</p>
+    
+    <div style="display: flex; gap: 15px;">
+        <a href="/children/new" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus"></i> Add a New Child
+        </a>
+        <a href="/children" class="btn btn-secondary">
+            <i class="fa-solid fa-folder-open"></i> Browse Directory
+        </a>
+        <a href="/adoptions" class="btn btn-secondary">
+            <i class="fa-solid fa-file-signature"></i> Adoption management
+        </a>
+    </div>
+</div>
+
+<!-- RECENT ACTIVITY SECTION -->
+<div class="page-title" style="margin-top: 40px; margin-bottom: 20px; font-size: 22px;">
+    <i class="fa-solid fa-clock-rotate-left" style="color: var(--text-muted); margin-right: 10px;"></i>
+    Recent Activity
+</div>
+
+<div class="table-wrapper" style="margin-bottom: 40px;">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Child ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (recentChildren && recentChildren.length > 0) { %>
+                <% recentChildren.forEach(child => { %>
+                    <tr>
+                        <td><strong style="color: var(--text-muted);">#<%= child.id %></strong></td>
+                        <td style="font-size: 13px; color: var(--text-muted); font-weight: 600;"><%= child.child_public_id || '—' %></td>
+                        <td style="font-weight: 500;"><%= dashName(child) %></td>
+                        <td><%= dashAge(child) %></td>
+                        <td>
+                            <span class="status-tag status-<%= child.status %>"><%= child.status %></span>
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="/children/<%= child.id %>/edit" class="btn btn-secondary" style="padding: 4px 10px; font-size: 13px;">
+                                View <i class="fa-solid fa-chevron-right" style="margin-left: 5px;"></i>
+                            </a>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        No recent activity found.
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

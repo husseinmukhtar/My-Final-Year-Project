@@ -1,0 +1,92 @@
+<%- include('../partials/header', { pageTitle: 'Dashboard', activePage: 'dashboard' }) %>
+
+<div class="page-title" style="margin-bottom: 30px;">
+    Overview Statistics
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon primary"><i class="fa-solid fa-users"></i></div>
+        <div class="stat-info">
+            <h3>Total Children</h3>
+            <p><%= stats.total %></p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning"><i class="fa-solid fa-house-chimney-window"></i></div>
+        <div class="stat-info">
+            <h3>Active in System</h3>
+            <p><%= stats.active %></p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success"><i class="fa-solid fa-heart"></i></div>
+        <div class="stat-info">
+            <h3>Adopted</h3>
+            <p><%= stats.adopted %></p>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 30px;">
+    <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">Welcome Back!</h2>
+    <p style="color: var(--text-muted); margin-bottom: 24px;">The orphanage management system is fully operational. You can use the sidebar to navigate records, update statuses, or add new children into the system.</p>
+    
+    <div style="display: flex; gap: 15px;">
+        <a href="/children/new" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus"></i> Add a New Child
+        </a>
+        <a href="/children" class="btn btn-secondary">
+            <i class="fa-solid fa-folder-open"></i> Browse Directory
+        </a>
+    </div>
+</div>
+
+<!-- RECENT ACTIVITY SECTION -->
+<div class="page-title" style="margin-top: 40px; margin-bottom: 20px; font-size: 22px;">
+    <i class="fa-solid fa-clock-rotate-left" style="color: var(--text-muted); margin-right: 10px;"></i>
+    Recent Activity
+</div>
+
+<div class="table-wrapper" style="margin-bottom: 40px;">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (recentChildren && recentChildren.length > 0) { %>
+                <% recentChildren.forEach(child => { %>
+                    <tr>
+                        <td><strong style="color: var(--text-muted);">#<%= child.id %></strong></td>
+                        <td style="font-weight: 500;"><%= child.name %></td>
+                        <td><%= child.age %> yrs</td>
+                        <td>
+                            <span class="status-tag status-<%= child.status %>"><%= child.status %></span>
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="/children/<%= child.id %>/edit" class="btn btn-secondary" style="padding: 4px 10px; font-size: 13px;">
+                                View <i class="fa-solid fa-chevron-right" style="margin-left: 5px;"></i>
+                            </a>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        No recent activity found.
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

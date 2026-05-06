@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout - Hope Orphanage</title>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --surface: rgba(30, 41, 59, 0.7);
+            --surface-border: rgba(255, 255, 255, 0.1);
+            --bg-color: #0F172A;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-color) 0%, #172554 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .app-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .glass-card {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-row { display: flex; gap: 1rem; }
+        .form-row .form-group { flex: 1; margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted); font-weight: 500; }
+        
+        input, select, textarea {
+            width: 100%; padding: 0.75rem 1rem; background: rgba(0,0,0,0.2); 
+            border: 1px solid var(--surface-border); border-radius: 12px; color: #fff; 
+            font-size: 1rem; box-sizing: border-box; transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--primary); background: rgba(0,0,0,0.3);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%; padding: 1rem; border: none; border-radius: 12px;
+            background: var(--primary); color: #fff; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease; margin-top: 1rem;
+        }
+        .btn-submit:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Gateway Tabs */
+        .gateway-tabs { display: flex; border-bottom: 1px solid var(--surface-border); margin-bottom: 1.5rem; }
+        .tab-btn {
+            background: none; border: none; color: var(--text-muted); padding: 1rem; flex: 1; cursor: pointer;
+            font-size: 0.9rem; font-weight: 600; border-bottom: 2px solid transparent; transition: all 0.3s;
+        }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        
+        /* Spinner */
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary);
+            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .secure-badge { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="/" class="brand">
+            <i class="fa-solid fa-hand-holding-heart"></i> Hope Orphanage
+        </a>
+        <div style="color: var(--text-muted); font-size: 0.9rem;">
+            <i class="fa-solid fa-lock" style="color: var(--success)"></i> Secure Checkout
+        </div>
+    </nav>
+
+    <div class="app-container" id="react-root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Stage 1: Info Collection
+        function DonationForm({ onNext }) {
+            const [formData, setFormData] = useState({
+                donor_name: '', donor_email: '', phone: '', amount: '', currency: 'USD', message: ''
+            });
+
+            const handleChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onNext(formData);
+            };
+
+            return (
+                <div className="glass-card">
+                    <h2 style={{marginTop: 0, marginBottom: '1.5rem'}}>Donor Information</h2>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" name="donor_name" required onChange={handleChange} value={formData.donor_name} placeholder="John Doe" />
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Email Address *</label>
+                                <input type="email" name="donor_email" required onChange={handleChange} value={formData.donor_email} placeholder="john@example.com" />
+                            </div>
+                            <div className="form-group">
+                                <label>Phone (Optional)</label>
+                                <input type="tel" name="phone" onChange={handleChange} value={formData.phone} placeholder="+1 234..." />
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group" style={{flex: '0.4'}}>
+                                <label>Currency</label>
+                                <select name="currency" onChange={handleChange} value={formData.currency}>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="NGN">NGN (₦)</option>
+                                </select>
+                            </div>
+                            <div className="form-group" style={{flex: '1'}}>
+                                <label>Amount *</label>
+                                <input type="number" step="0.01" min="1" name="amount" required onChange={handleChange} value={formData.amount} placeholder="50.00" />
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Message (Optional)</label>
+                            <textarea name="message" rows="2" onChange={handleChange} value={formData.message} placeholder="Leave an encouraging note..."></textarea>
+                        </div>
+                        <button type="submit" className="btn-submit">Continue to Payment</button>
+                    </form>
+                    <div className="secure-badge">
+                        <i className="fa-solid fa-shield-halved"></i> 256-bit SSL Encryption
+                    </div>
+                </div>
+            );
+        }
+
+        // Stage 2: Payment Gateway Simulation
+        function PaymentGateway({ donationData, onComplete, onCancel }) {
+            const [method, setMethod] = useState('Card');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+
+            const processPayment = async (simulatedStatus = 'success') => {
+                setLoading(true);
+                setError('');
+                try {
+                    // 1. Initiate 
+                    const initRes = await fetch('/api/donations/initiate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({...donationData, payment_method: method})
+                    });
+                    const initData = await initRes.json();
+
+                    if (!initData.success) throw new Error(initData.message);
+
+                    // Simulate delay for "bank communication"
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    // 2. Process callback
+                    const procRes = await fetch('/api/donations/process', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reference: initData.data.reference, simulatedStatus })
+                    });
+                    const procData = await procRes.json();
+
+                    setLoading(false);
+                    onComplete({
+                        success: simulatedStatus === 'success',
+                        status: procData.status,
+                        reference: procData.reference
+                    });
+
+                } catch (err) {
+                    setLoading(false);
+                    setError(err.message || 'Payment initiation failed.');
+                }
+            };
+
+            if (loading) {
+                return (
+                    <div className="glass-card" style={{textAlign: 'center', padding: '4rem 2rem'}}>
+                        <div className="spinner"></div>
+                        <h3 style={{color: '#fff'}}>Processing Secure Payment...</h3>
+                        <p style={{color: 'var(--text-muted)'}}>Please do not close or refresh this page.</p>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="glass-card">
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
+                        <h3 style={{margin: 0}}>Complete Payment</h3>
+                        <span style={{fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--success)'}}>
+                            {donationData.currency === 'USD' ? '$' : '₦'}{donationData.amount}
+                        </span>
+                    </div>
+
+                    {error && <div style={{padding: '1rem', background: 'rgba(239, 68, 68, 0.2)', color: 'var(--danger)', borderRadius: '8px', marginBottom: '1rem'}}>{error}</div>}
+
+                    <div className="gateway-tabs">
+                        {['Card', 'Bank Transfer', 'USSD'].map(m => (
+                            <button key={m} className={`tab-btn ${method === m ? 'active' : ''}`} onClick={() => setMethod(m)}>
+                                {m === 'Card' && <i className="fa-regular fa-credit-card"></i>}
+                                {m === 'Bank Transfer' && <i className="fa-solid fa-building-columns"></i>}
+                                {m === 'USSD' && <i className="fa-solid fa-mobile-screen"></i>}
+                                &nbsp; {m}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div style={{minHeight: '200px'}}>
+                        {method === 'Card' && (
+                            <div>
+                                <div className="form-group">
+                                    <label>Card Number</label>
+                                    <input type="text" placeholder="0000 0000 0000 0000" maxLength="19" />
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Expiry (MM/YY)</label>
+                                        <input type="text" placeholder="12/26" maxLength="5"/>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>CVV</label>
+                                        <input type="password" placeholder="123" maxLength="3" />
+                                    </div>
+                                </div>
+                                <button className="btn-submit" onClick={() => processPayment('success')}>Pay Now</button>
+                            </div>
+                        )}
+
+                        {method === 'Bank Transfer' && (
+                            <div style={{textAlign: 'center'}}>
+                                <p style={{color: 'var(--text-muted)'}}>Transfer the exact amount to the account below:</p>
+                                <div style={{background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '12px', margin: '1rem 0'}}>
+                                    <div style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>HOPE ORPHANAGE TRUST</div>
+                                    <div style={{fontSize: '1.5rem', letterSpacing: '2px', fontWeight: 'bold', margin: '0.5rem 0'}}>0123456789</div>
+                                    <div style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>Global Bank Plc</div>
+                                </div>
+                                <button className="btn-submit" onClick={() => processPayment('awaiting')}>I Have Made The Transfer</button>
+                            </div>
+                        )}
+
+                        {method === 'USSD' && (
+                            <div style={{textAlign: 'center'}}>
+                                <p style={{color: 'var(--text-muted)'}}>Dial the code below on your mobile device:</p>
+                                <div style={{background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '12px', margin: '1rem 0'}}>
+                                    <div style={{fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)'}}>*123*456*789#</div>
+                                </div>
+                                <div style={{display: 'flex', gap: '1rem'}}>
+                                    <button className="btn-submit" style={{background: 'var(--success)'}} onClick={() => processPayment('success')}>Simulate Success</button>
+                                    <button className="btn-submit" style={{background: 'var(--danger)'}} onClick={() => processPayment('fail')}>Simulate Failure</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div style={{textAlign: 'center', marginTop: '1.5rem'}}>
+                        <button onClick={onCancel} style={{background: 'none', border: 'none', color: 'var(--text-muted)', textDecoration: 'underline', cursor: 'pointer'}}>Cancel Payment</button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Stage 3: Result
+        function ResultScreen({ result, summary, onReset }) {
+            const isSuccess = result.status === 'successful';
+            const isPending = result.status === 'awaiting_confirmation';
+
+            let icon = "fa-circle-check";
+            let color = "var(--success)";
+            let title = "Payment Successful!";
+            let text = "Thank you for your generous donation. A receipt has been sent to your email.";
+
+            if (isPending) {
+                icon = "fa-clock";
+                color = "var(--warning)";
+                title = "Payment Pending";
+                text = "We are awaiting confirmation of your bank transfer. We will notify you once received.";
+            } else if (!isSuccess) {
+                icon = "fa-circle-xmark";
+                color = "var(--danger)";
+                title = "Payment Failed";
+                text = "Unfortunately, we could not process your payment at this time.";
+            }
+
+            return (
+                <div className="glass-card" style={{textAlign: 'center'}}>
+                    <i className={`fa-solid ${icon}`} style={{fontSize: '4rem', color: color, marginBottom: '1.5rem'}}></i>
+                    <h2 style={{margin: '0 0 1rem 0'}}>{title}</h2>
+                    <p style={{color: 'var(--text-muted)', lineHeight: '1.6'}}>{text}</p>
+                    
+                    <div style={{margin: '2rem 0', padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', textAlign: 'left'}}>
+                        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem'}}>
+                            <span style={{color: 'var(--text-muted)'}}>Reference ID:</span>
+                            <span style={{fontFamily: 'monospace'}}>{result.reference}</span>
+                        </div>
+                        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem'}}>
+                            <span style={{color: 'var(--text-muted)'}}>Amount:</span>
+                            <span>{summary.currency === 'USD' ? '$' : '₦'}{summary.amount}</span>
+                        </div>
+                        <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                            <span style={{color: 'var(--text-muted)'}}>Donor:</span>
+                            <span>{summary.donor_name}</span>
+                        </div>
+                    </div>
+
+                    <a href="/" className="btn-submit" style={{display: 'block', textDecoration: 'none', textAlign: 'center'}}>
+                        Return to Homepage
+                    </a>
+                </div>
+            );
+        }
+
+        // Main App Wrapper
+        function DonationApp() {
+            const [stage, setStage] = useState('FORM'); // FORM, GATEWAY, RESULT
+            const [donationData, setDonationData] = useState(null);
+            const [resultData, setResultData] = useState(null);
+
+            const handleFormSubmit = (data) => {
+                setDonationData(data);
+                setStage('GATEWAY');
+            };
+
+            const handlePaymentComplete = (result) => {
+                setResultData(result);
+                setStage('RESULT');
+            };
+
+            return (
+                <>
+                    {stage === 'FORM' && <DonationForm onNext={handleFormSubmit} />}
+                    {stage === 'GATEWAY' && <PaymentGateway donationData={donationData} onComplete={handlePaymentComplete} onCancel={() => setStage('FORM')} />}
+                    {stage === 'RESULT' && <ResultScreen result={resultData} summary={donationData} />}
+                </>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('react-root'));
+        root.render(<DonationApp />);
+    </script>
+</body>
+</html>

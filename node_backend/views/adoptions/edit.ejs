@@ -1,0 +1,241 @@
+<%- include('../partials/header', { pageTitle: 'Edit Adoption', activePage: 'adoptions', extraCss: ['/css/child-form.css', '/css/adoption-module.css'] }) %>
+<% const p = typeof adoption !== 'undefined' && adoption ? adoption : {}; %>
+<% const sel = (v, c) => (String(c || '') === String(v || '') ? 'selected' : ''); %>
+<% function dv(d) { if (!d) return ''; if (d instanceof Date) return d.toISOString().slice(0,10); return String(d).slice(0,10); } %>
+<% function childLabel(ch) {
+  var parts = [ch.first_name, ch.middle_name, ch.last_name].filter(function (x) { return x && String(x).trim(); }).join(' ').trim();
+  return (parts || ch.name || 'Child') + (ch.child_public_id ? ' — ' + ch.child_public_id : '');
+} %>
+
+<div class="adoptions-module">
+<div class="page-title" style="margin-bottom: 24px;">Edit adoption #<%= p.id %></div>
+
+<div class="card form-container child-form-wide">
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error" style="margin-bottom: 20px;"><%= error %></div>
+    <% } %>
+
+    <form action="/adoptions/<%= p.id %>?_method=PUT" method="POST" class="validate-form" novalidate>
+        <input type="hidden" name="_method" value="PUT">
+        <div class="child-form-tabs" role="tablist">
+            <button type="button" class="child-form-tab active" data-tab="0">1. Case</button>
+            <button type="button" class="child-form-tab" data-tab="1">2. Adopter</button>
+            <button type="button" class="child-form-tab" data-tab="2">3. Household &amp; ID</button>
+            <button type="button" class="child-form-tab" data-tab="3">4. Notes</button>
+        </div>
+
+        <div class="child-form-panel active" data-panel="0">
+            <h3 class="child-form-section-title">Child &amp; case status</h3>
+            <div class="form-group">
+                <label class="form-label">Child <span class="required-mark">*</span></label>
+                <select name="child_id" class="form-control" required>
+                    <% children.forEach(function (ch) { %>
+                        <option value="<%= ch.id %>" <%= sel(ch.id, p.child_id) %>><%= childLabel(ch) %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Adoption status <span class="required-mark">*</span></label>
+                    <select name="adoption_status" class="form-control" required>
+                        <option value="Pending" <%= sel('Pending', p.adoption_status) %>>Pending</option>
+                        <option value="Accepted" <%= sel('Accepted', p.adoption_status) %>>Accepted</option>
+                        <option value="Scheduled" <%= sel('Scheduled', p.adoption_status) %>>Scheduled</option>
+                        <option value="Rejected" <%= sel('Rejected', p.adoption_status) %>>Rejected</option>
+                        <option value="Completed" <%= sel('Completed', p.adoption_status) %>>Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Application date <span class="required-mark">*</span></label>
+                    <input type="date" name="application_date" class="form-control" required value="<%= dv(p.application_date) %>">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Approval date</label>
+                    <input type="date" name="approval_date" class="form-control" value="<%= dv(p.approval_date) %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assigned staff</label>
+                    <input type="text" name="assigned_staff" class="form-control" maxlength="200" value="<%= p.assigned_staff || '' %>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Scheduled visit/interview date and time</label>
+                <input type="datetime-local" name="visit_scheduled_at" class="form-control" value="<%= p.visit_scheduled_at ? String(p.visit_scheduled_at).slice(0,16).replace(' ', 'T') : '' %>">
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="1">
+            <h3 class="child-form-section-title">Adopter information</h3>
+            <div class="form-group">
+                <label class="form-label">Full name <span class="required-mark">*</span></label>
+                <input type="text" name="adopter_full_name" class="form-control" required maxlength="255" value="<%= p.adopter_full_name || '' %>">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Gender <span class="required-mark">*</span></label>
+                    <select name="adopter_gender" class="form-control" required>
+                        <option value="Male" <%= sel('Male', p.adopter_gender) %>>Male</option>
+                        <option value="Female" <%= sel('Female', p.adopter_gender) %>>Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date of birth</label>
+                    <input type="date" name="adopter_dob" class="form-control" value="<%= dv(p.adopter_dob) %>">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nationality / Country</label>
+                    <select name="adopter_nationality" class="form-control" id="adopter_nationality">
+                        <option value="">Select country</option>
+                        <option value="Ghana" <%= sel('Ghana', p.adopter_nationality) %>>Ghana</option>
+                        <option value="Nigeria" <%= sel('Nigeria', p.adopter_nationality) %>>Nigeria</option>
+                        <option value="Kenya" <%= sel('Kenya', p.adopter_nationality) %>>Kenya</option>
+                        <option value="United States" <%= sel('United States', p.adopter_nationality) %>>United States</option>
+                        <option value="United Kingdom" <%= sel('United Kingdom', p.adopter_nationality) %>>United Kingdom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone <span class="required-mark">*</span></label>
+                    <input type="tel" name="adopter_phone" class="form-control" id="adopter_phone" required value="<%= p.adopter_phone || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email <span class="required-mark">*</span></label>
+                    <input type="email" name="adopter_email" class="form-control" required value="<%= p.adopter_email || '' %>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address <span class="required-mark">*</span></label>
+                <textarea name="adopter_address" class="form-control" rows="3" required><%= p.adopter_address || '' %></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Marital status <span class="required-mark">*</span></label>
+                <select name="marital_status" class="form-control" required>
+                    <option value="Single" <%= sel('Single', p.marital_status) %>>Single</option>
+                    <option value="Married" <%= sel('Married', p.marital_status) %>>Married</option>
+                    <option value="Divorced" <%= sel('Divorced', p.marital_status) %>>Divorced</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="2">
+            <h3 class="child-form-section-title">Financial &amp; living conditions</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Occupation</label>
+                    <input type="text" name="occupation" class="form-control" maxlength="200" value="<%= p.occupation || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Number of children in household</label>
+                    <input type="number" name="number_of_children" class="form-control" min="0" max="30" value="<%= p.number_of_children != null ? p.number_of_children : 0 %>">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Income level</label>
+                    <input type="text" name="income_level" class="form-control" maxlength="80" value="<%= p.income_level || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">House type</label>
+                    <select name="house_type" class="form-control">
+                        <option value="">Not specified</option>
+                        <option value="Owned" <%= sel('Owned', p.house_type) %>>Owned</option>
+                        <option value="Rented" <%= sel('Rented', p.house_type) %>>Rented</option>
+                    </select>
+                </div>
+            </div>
+            <h3 class="child-form-section-title" style="margin-top: 8px;">Identification</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">ID type <span class="required-mark">*</span></label>
+                    <select name="identification_type" class="form-control" required>
+                        <option value="NIN" <%= sel('NIN', p.identification_type) %>>NIN</option>
+                        <option value="Passport" <%= sel('Passport', p.identification_type) %>>Passport</option>
+                        <option value="Driver License" <%= sel('Driver License', p.identification_type) %>>Driver License</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID number <span class="required-mark">*</span></label>
+                    <input type="text" name="identification_number" class="form-control" required maxlength="120" value="<%= p.identification_number || '' %>">
+                </div>
+            </div>
+        </div>
+
+        <div class="child-form-panel" data-panel="3">
+            <h3 class="child-form-section-title">Notes</h3>
+            <div class="form-group">
+                <textarea name="notes" class="form-control" rows="5"><%= p.notes || '' %></textarea>
+            </div>
+        </div>
+
+        <div class="tab-nav-actions">
+            <div class="tab-prev-next">
+                <button type="button" class="btn btn-secondary" id="tab_prev"><i class="fa-solid fa-chevron-left"></i> Previous</button>
+                <button type="button" class="btn btn-secondary" id="tab_next">Next <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <span style="font-size: 13px; color: var(--text-muted);">Step <span id="tab_index">1</span> / 4</span>
+        </div>
+
+        <div class="child-form-footer-actions">
+            <a href="/adoptions/<%= p.id %>" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save changes</button>
+        </div>
+    </form>
+</div>
+</div>
+
+<script>
+(function () {
+    var tabs = document.querySelectorAll('.child-form-tab');
+    var panels = document.querySelectorAll('.child-form-panel');
+    var current = 0;
+    function showTab(i) {
+        current = Math.max(0, Math.min(i, tabs.length - 1));
+        tabs.forEach(function (t, idx) { t.classList.toggle('active', idx === current); });
+        panels.forEach(function (p, idx) { p.classList.toggle('active', idx === current); });
+        var el = document.getElementById('tab_index');
+        if (el) el.textContent = String(current + 1);
+    }
+    tabs.forEach(function (btn) {
+        btn.addEventListener('click', function () { showTab(parseInt(btn.getAttribute('data-tab'), 10)); });
+    });
+    document.getElementById('tab_prev').addEventListener('click', function () { showTab(current - 1); });
+    document.getElementById('tab_next').addEventListener('click', function () { showTab(current + 1); });
+})();
+
+(function () {
+    var country = document.getElementById('adopter_nationality');
+    var phone = document.getElementById('adopter_phone');
+    var cfg = {
+        Ghana: { code: '+233', example: '+233XXXXXXXXX' },
+        Nigeria: { code: '+234', example: '+234XXXXXXXXXX' },
+        Kenya: { code: '+254', example: '+254XXXXXXXXX' },
+        'United States': { code: '+1', example: '+1XXXXXXXXXX' },
+        'United Kingdom': { code: '+44', example: '+44XXXXXXXXXX' }
+    };
+    function applyPhoneHint() {
+        if (!country || !phone) return;
+        var selected = cfg[country.value];
+        if (!selected) {
+            phone.removeAttribute('pattern');
+            phone.placeholder = '';
+            return;
+        }
+        phone.placeholder = selected.example;
+        phone.pattern = '^\\' + selected.code + '\\d+$|^0\\d+$';
+    }
+    if (country && phone) {
+        country.addEventListener('change', applyPhoneHint);
+        applyPhoneHint();
+    }
+})();
+</script>
+
+<%- include('../partials/footer') %>
+
+
+
+
+

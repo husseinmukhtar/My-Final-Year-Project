@@ -1,0 +1,58 @@
+<%
+  const view = typeof locals === 'object' && locals !== null ? locals : {};
+  const p = view.prefill || {};
+  const okMessage = view.successMessage || null;
+  const badMessage = view.errorMessage || null;
+%>
+<div class="page-title" style="margin-bottom: 24px;">Report Abandoned Child</div>
+
+<% if (okMessage) { %><div class="alert alert-success"><%= okMessage %></div><% } %>
+<% if (badMessage) { %><div class="alert alert-danger"><%= badMessage %></div><% } %>
+
+<div class="card form-container">
+    <form action="/public/report" method="POST" enctype="multipart/form-data" class="validate-form" novalidate>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input class="form-control" name="reporter_name" required value="<%= p.reporter_name || '' %>">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input class="form-control" name="reporter_phone" required value="<%= p.reporter_phone || '' %>">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input class="form-control" name="location" required value="<%= p.location || '' %>">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Child age (estimate)</label>
+                <input class="form-control" name="child_age_estimate" required value="<%= p.child_age_estimate || '' %>">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select class="form-control" name="child_gender" required>
+                    <option value="">Select gender</option>
+                    <% ['Male','Female','Unknown'].forEach(function (gender) { %>
+                        <option value="<%= gender %>" <%= p.child_gender === gender ? 'selected' : '' %>><%= gender %></option>
+                    <% }); %>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" required rows="5"><%= p.description || '' %></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Upload image or use camera</label>
+            <input class="form-control" type="file" name="attachment" accept="image/*" capture="environment">
+        </div>
+        <div class="form-actions">
+            <a href="/public/requests" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back</a>
+            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane"></i> Submit report</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,35 @@
+<div class="toolbar">
+        <button type="button" onclick="window.print()">Print or Save as PDF</button>
+    </div>
+    <h1>Adoption records</h1>
+    <div class="meta">Generated: <%= printedAt ? printedAt.toISOString().slice(0,19).replace('T',' ') : '' %> · <%= (rows && rows.length) || 0 %> row(s)</div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Child</th>
+                <th>Adopter</th>
+                <th>Status</th>
+                <th>Application</th>
+                <th>Scheduled visit</th>
+                <th>Email</th>
+                <th>Phone</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (rows && rows.length) { rows.forEach(function (r) { %>
+            <tr>
+                <td><%= r.id %></td>
+                <td><%= r.child_name %> (<%= r.child_id %>)</td>
+                <td><%= r.adopter_full_name %></td>
+                <td><%= r.adoption_status %></td>
+                <td><%= r.application_date ? String(r.application_date).slice(0,10) : '' %></td>
+                <td><%= r.visit_scheduled_at ? String(r.visit_scheduled_at).replace('T', ' ').slice(0,16) : '' %></td>
+                <td><%= r.adopter_email %></td>
+                <td><%= r.adopter_phone %></td>
+            </tr>
+            <% }); } else { %>
+            <tr><td colspan="8">No records.</td></tr>
+            <% } %>
+        </tbody>
+    </table>

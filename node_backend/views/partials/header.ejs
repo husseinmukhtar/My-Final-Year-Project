@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Orphanage Management' %></title>
+    <!-- Shared Premium CSS -->
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <% if (typeof extraCss !== 'undefined' && extraCss) { %>
+        <% if (Array.isArray(extraCss)) { extraCss.forEach(function (href) { %>
+    <link rel="stylesheet" href="<%= href %>">
+        <% }); } else { %>
+    <link rel="stylesheet" href="<%= extraCss %>">
+        <% } %>
+    <% } %>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        function confirmDeletion(event) {
+            if (!confirm("Are you sure you want to delete this child record? This action cannot be undone.")) {
+                event.preventDefault();
+                return false;
+            }
+            return true;
+        }
+
+        function dismissAlert(element) {
+            element.parentElement.style.display = 'none';
+        }
+    </script>
+</head>
+<body>
+    <% const __hdr = typeof locals === 'object' && locals != null ? locals : {}; %>
+    
+    <!-- SIDEBAR NAV -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-hands-holding-child"></i>
+            <span>Orphanage System</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/children/dashboard" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>">
+                <i class="fa-solid fa-chart-pie" style="width: 20px;"></i> Dashboard
+            </a>
+            <a href="/children" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'children' ? 'active' : '' %>">
+                <i class="fa-solid fa-children" style="width: 20px;"></i> Children List
+            </a>
+            <a href="/children/new" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'add' ? 'active' : '' %>">
+                <i class="fa-solid fa-user-plus" style="width: 20px;"></i> Add Child
+            </a>
+            <a href="/adoptions" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'adoptions' ? 'active' : '' %>">
+                <i class="fa-solid fa-file-signature" style="width: 20px;"></i> Adoptions
+            </a>
+            <a href="/staff" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'staff' ? 'active' : '' %>">
+                <i class="fa-solid fa-user-tie" style="width: 20px;"></i> Staff
+            </a>
+            <a href="/donations" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'donations' ? 'active' : '' %>">
+                <i class="fa-solid fa-hand-holding-heart" style="width: 20px;"></i> Donations
+            </a>
+            <a href="/admin/reported-children" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'reported-children' ? 'active' : '' %>">
+                <i class="fa-solid fa-child-reaching" style="width: 20px;"></i> Reported Children
+            </a>
+            <a href="/reports" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'reports' ? 'active' : '' %>">
+                <i class="fa-solid fa-chart-line" style="width: 20px;"></i> Reports
+            </a>
+            <a href="/admin/test-email" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'admin-email' ? 'active' : '' %>">
+                <i class="fa-solid fa-envelope-circle-check" style="width: 20px;"></i> Test Email
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form action="/login" method="GET">
+                <!-- Ideally pointing to /logout, but assuming /login redirects or logs out. Assuming logout is set up properly at some route. Let's redirect to /login to break session if that's standard, but often it's /logout. The first prompt said authController.logout exists. -->
+                <a href="/logout" class="nav-link" style="color: #fca5a5;">
+                    <i class="fa-solid fa-right-from-bracket" style="width: 20px;"></i> Logout
+                </a>
+            </form>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+        
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div>
+                <span style="color: var(--text-muted); font-weight: 500;">Welcome to the dashboard</span>
+                
+                <!-- BREADCRUMB -->
+                <div class="breadcrumb" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                    <a href="/children/dashboard" style="color: var(--primary); text-decoration: none;">Home</a> 
+                    <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin: 0 6px;"></i>
+                    <span><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Dashboard' %></span>
+                </div>
+            </div>
+            
+            <div class="user-profile">
+                <!-- If we set res.locals.user in app.js, we could render it. -->
+                <div class="user-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <span><%= typeof user !== 'undefined' && user && user.full_name ? user.full_name : 'Admin' %></span>
+            </div>
+        </header>
+
+        <!-- FLASH MESSAGES -->
+        <% if (__hdr.success) { %>
+            <div class="alert alert-success">
+                <i class="fa-solid fa-circle-check"></i> <%= __hdr.success %>
+                <i class="fa-solid fa-xmark" style="margin-left: auto; cursor: pointer; color: #166534;" onclick="dismissAlert(this)"></i>
+            </div>
+        <% } %>
+        
+        <% if (__hdr.error) { %>
+            <div class="alert alert-error">
+                <i class="fa-solid fa-circle-exclamation"></i> <%= __hdr.error %>
+                <i class="fa-solid fa-xmark" style="margin-left: auto; cursor: pointer; color: #b91c1c;" onclick="dismissAlert(this)"></i>
+            </div>
+        <% } %>

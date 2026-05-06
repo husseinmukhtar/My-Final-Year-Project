@@ -1,0 +1,81 @@
+<div class="adoptions-module">
+<div class="page-title" style="margin-bottom: 24px;">
+    Adoption Management
+</div>
+
+<form action="/adoptions" method="GET" class="filter-bar">
+    <div class="filter-group">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); padding-left: 10px; position: absolute;"></i>
+        <input type="text" name="search" placeholder="Search adopter or child…" value="<%= search || '' %>" style="padding-left: 36px;">
+    </div>
+    <div class="filter-group">
+        <select name="status">
+            <option value="">All statuses</option>
+            <option value="Pending" <%= statusFilter === 'Pending' ? 'selected' : '' %>>Pending</option>
+            <option value="Accepted" <%= statusFilter === 'Accepted' ? 'selected' : '' %>>Accepted</option>
+            <option value="Scheduled" <%= statusFilter === 'Scheduled' ? 'selected' : '' %>>Scheduled</option>
+            <option value="Rejected" <%= statusFilter === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+            <option value="Completed" <%= statusFilter === 'Completed' ? 'selected' : '' %>>Completed</option>
+        </select>
+    </div>
+    <div class="filter-group" style="flex: 0;">
+        <button type="submit" class="btn btn-secondary">Filter</button>
+        <% if (search || statusFilter) { %>
+            <a href="/adoptions" class="btn btn-danger" style="margin-left: 10px;"><i class="fa-solid fa-xmark"></i> Clear</a>
+        <% } %>
+    </div>
+</form>
+
+<div style="margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+    <div></div> <!-- Empty div to keep flex space-between alignment for export buttons -->
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-left: auto;">
+        <a href="/reports/export/adoptions" class="btn btn-secondary"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+        <a href="/reports/export/adoptions-print" target="_blank" rel="noopener" class="btn btn-secondary"><i class="fa-solid fa-file-pdf"></i> Print / Save PDF</a>
+    </div>
+</div>
+
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Child</th>
+                <th>Adopter</th>
+                <th>Status</th>
+                <th>Application date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (adoptions && adoptions.length > 0) { %>
+                <% adoptions.forEach(function (row) { %>
+                    <tr>
+                        <td><strong style="color: var(--text-muted);">#<%= row.id %></strong></td>
+                        <td style="font-weight: 500;"><%= row.child_display_name || '—' %></td>
+                        <td><%= row.adopter_full_name %></td>
+                        <td><span class="status-tag adoption-<%= row.adoption_status %>"><%= row.adoption_status %></span></td>
+                        <td style="color: var(--text-muted); font-size: 14px;"><%= row.application_date ? String(row.application_date).slice(0, 10) : '—' %></td>
+                        <td>
+                            <div class="actions-cell">
+                                <a href="/adoptions/<%= row.id %>" class="btn btn-secondary" style="padding: 6px 12px;"><i class="fa-solid fa-eye"></i> View</a>
+                                <a href="/adoptions/<%= row.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;"><i class="fa-solid fa-pen"></i> Edit</a>
+                                <form action="/adoptions/<%= row.id %>?_method=DELETE" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px;"><i class="fa-solid fa-trash"></i> Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                        <p>No adoption records found.</p>
+                        <a href="/admission" target="_blank" class="btn btn-primary" style="margin-top: 12px;">Create the first application</a>
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+</div>

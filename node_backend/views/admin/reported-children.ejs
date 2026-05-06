@@ -1,0 +1,61 @@
+<%- include('../partials/header', { pageTitle: 'Reported Children', activePage: 'reported-children' }) %>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Reported Children
+</div>
+
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>Photo</th>
+                <th>Reporter</th>
+                <th>Phone</th>
+                <th>Location</th>
+                <th>Child</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Update</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (reports && reports.length) { %>
+                <% reports.forEach(function (report) { %>
+                    <tr>
+                        <td>
+                            <% if (report.photo_path) { %>
+                                <img src="<%= report.photo_path %>" alt="Reported child" style="width: 64px; height: 64px; object-fit: cover; border-radius: 8px;">
+                            <% } else { %>
+                                <span style="color: var(--text-muted);">No photo</span>
+                            <% } %>
+                        </td>
+                        <td><%= report.reporter_name %></td>
+                        <td><%= report.reporter_phone %></td>
+                        <td><%= report.location_found %></td>
+                        <td><%= report.child_age || 'N/A' %> / <%= report.child_gender || 'Unknown' %></td>
+                        <td style="max-width: 260px;"><%= report.description || 'N/A' %></td>
+                        <td><span class="status-tag status-<%= report.status %>"><%= report.status %></span></td>
+                        <td><%= report.submitted_at ? String(report.submitted_at).slice(0, 10) : '' %></td>
+                        <td>
+                            <form action="/admin/reported-children/<%= report.id %>/status" method="POST" style="display:flex; gap:8px; align-items:center;">
+                                <select name="status" class="form-control" style="min-width: 130px;">
+                                    <% ['Pending','Reviewed','Admitted','Rejected'].forEach(function (status) { %>
+                                        <option value="<%= status %>" <%= report.status === status ? 'selected' : '' %>><%= status %></option>
+                                    <% }); %>
+                                </select>
+                                <button class="btn btn-primary" type="submit" style="padding: 8px 12px;">Save</button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="9" style="text-align:center; padding:40px; color: var(--text-muted);">No reported children yet.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

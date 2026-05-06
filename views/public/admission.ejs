@@ -1,0 +1,67 @@
+<%
+  const view = typeof locals === 'object' && locals !== null ? locals : {};
+  const p = view.prefill || {};
+  const okMessage = view.successMessage || null;
+  const badMessage = view.errorMessage || null;
+%>
+<div class="page-title" style="margin-bottom: 24px;">Request Child Admission</div>
+
+<% if (okMessage) { %><div class="alert alert-success"><%= okMessage %></div><% } %>
+<% if (badMessage) { %><div class="alert alert-danger"><%= badMessage %></div><% } %>
+
+<div class="card form-container">
+    <form action="/public/admission" method="POST" enctype="multipart/form-data" class="validate-form" novalidate>
+        <h2 class="h5 mb-3">Guardian information</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Guardian name</label>
+                <input class="form-control" name="guardian_name" required value="<%= p.guardian_name || '' %>">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input class="form-control" name="guardian_phone" required value="<%= p.guardian_phone || '' %>">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Relationship to child</label>
+                <input class="form-control" name="relationship_to_child" required value="<%= p.relationship_to_child || '' %>">
+            </div>
+        </div>
+
+        <h2 class="h5 mt-4 mb-3">Child information</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Child name</label>
+                <input class="form-control" name="child_name" required value="<%= p.child_name || '' %>">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select class="form-control" name="child_gender" required>
+                    <option value="">Select gender</option>
+                    <% ['Male','Female','Other','Unknown'].forEach(function (gender) { %>
+                        <option value="<%= gender %>" <%= p.child_gender === gender ? 'selected' : '' %>><%= gender %></option>
+                    <% }); %>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Age</label>
+                <input class="form-control" type="number" min="0" name="child_age" required value="<%= p.child_age || '' %>">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Reason</label>
+            <textarea class="form-control" name="admission_reason" required rows="4"><%= p.admission_reason || '' %></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Upload document</label>
+            <input class="form-control" type="file" name="supporting_document" accept="image/*,.pdf,.doc,.docx">
+        </div>
+        <div class="form-actions">
+            <a href="/public/requests" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back</a>
+            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane"></i> Submit request</button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,59 @@
+/* Adoption Management — Sadiya-style soft panel */
+.adoptions-module {
+  background: #f5f5f5;
+  margin: -30px -40px 0;
+  padding: 30px 40px 48px;
+  min-height: calc(100vh - 80px);
+}
+
+.adoptions-module .page-title {
+  color: #1e293b;
+}
+
+.adoptions-module .card {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+}
+
+.adoptions-module .filter-bar {
+  background: #fff;
+}
+
+.adoptions-module .custom-table th {
+  background: #fafafa;
+}
+
+.status-tag.adoption-Pending { background: #fef3c7; color: #92400e; }
+.status-tag.adoption-Accepted { background: #dbeafe; color: #1e40af; }
+.status-tag.adoption-Scheduled { background: #cffafe; color: #155e75; }
+.status-tag.adoption-Rejected { background: #fee2e2; color: #b91c1c; }
+.status-tag.adoption-Completed { background: #dcfce7; color: #166534; }
+
+.timeline {
+  border-left: 3px solid var(--primary);
+  padding-left: 20px;
+  margin: 16px 0;
+}
+.timeline-item {
+  position: relative;
+  padding-bottom: 18px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -27px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #e2e8f0;
+}
+
+@media (max-width: 768px) {
+  .adoptions-module {
+    margin: -20px -16px 0;
+    padding: 20px 16px 40px;
+  }
+}

@@ -1,0 +1,114 @@
+<% const a = adoption; %>
+<% function dstr(d) { if (!d) return '—'; return String(d).slice(0, 10); } %>
+
+<div class="adoptions-module">
+<div class="page-title" style="margin-bottom: 20px;">Adoption #<%= a.id %></div>
+<% if (typeof success !== 'undefined' && success) { %>
+    <div class="alert alert-success" style="margin-bottom: 16px;"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-error" style="margin-bottom: 16px;"><%= error %></div>
+<% } %>
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;">
+    <a href="/adoptions" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back to list</a>
+    <a href="/adoptions/<%= a.id %>/edit" class="btn btn-warning"><i class="fa-solid fa-pen"></i> Edit</a>
+    <form action="/adoptions/<%= a.id %>?_method=DELETE" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
+        <input type="hidden" name="_method" value="DELETE">
+        <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Delete</button>
+    </form>
+    <% if (a.adoption_status === 'Pending') { %>
+    <form action="/adoptions/<%= a.id %>/accept" method="POST" style="display:inline;">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Accept application</button>
+    </form>
+    <% } %>
+</div>
+
+<div class="card" style="margin-bottom: 20px;">
+    <h2 style="font-size: 18px; margin-bottom: 16px; color: var(--text-main);">Status</h2>
+    <p style="margin-bottom: 12px;"><span class="status-tag adoption-<%= a.adoption_status %>"><%= a.adoption_status %></span></p>
+    <div class="timeline">
+        <div class="timeline-item">
+            <strong>Application received</strong>
+            <div style="color: var(--text-muted); font-size: 14px;"><%= dstr(a.application_date) %></div>
+        </div>
+        <% if (a.approval_date) { %>
+        <div class="timeline-item">
+            <strong>Approval / decision date</strong>
+            <div style="color: var(--text-muted); font-size: 14px;"><%= dstr(a.approval_date) %></div>
+        </div>
+        <% } %>
+        <% if (a.visit_scheduled_at) { %>
+        <div class="timeline-item">
+            <strong>Visit/interview scheduled</strong>
+            <div style="color: var(--text-muted); font-size: 14px;"><%= String(a.visit_scheduled_at).replace('T', ' ').slice(0, 16) %></div>
+        </div>
+        <% } %>
+        <div class="timeline-item">
+            <strong>Record last updated</strong>
+            <div style="color: var(--text-muted); font-size: 14px;"><%= a.updated_at ? String(a.updated_at).replace('T', ' ').slice(0, 19) : '—' %></div>
+        </div>
+    </div>
+</div>
+
+<% if (a.adoption_status === 'Accepted' || a.adoption_status === 'Scheduled') { %>
+<div class="card" style="margin-bottom: 20px;">
+    <h2 style="font-size: 18px; margin-bottom: 16px;">Schedule orphanage visit/interview</h2>
+    <form action="/adoptions/<%= a.id %>/schedule?_method=PUT" method="POST">
+        <input type="hidden" name="_method" value="PUT">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Date and time <span class="required-mark">*</span></label>
+                <input type="datetime-local" name="visit_scheduled_at" class="form-control" required value="<%= a.visit_scheduled_at ? String(a.visit_scheduled_at).slice(0,16).replace(' ', 'T') : '' %>">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Assigned staff</label>
+                <input type="text" name="assigned_staff" class="form-control" maxlength="200" value="<%= a.assigned_staff || '' %>">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Scheduling notes</label>
+            <textarea name="schedule_notes" class="form-control" rows="3" placeholder="Interview instructions or meeting notes"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-calendar-check"></i> Save schedule</button>
+    </form>
+</div>
+<% } %>
+
+<div class="card" style="margin-bottom: 20px;">
+    <h2 style="font-size: 18px; margin-bottom: 16px;">Child</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 14px;">
+        <div><span style="color: var(--text-muted);">Name</span><br><strong><%= a.child_display_name %></strong></div>
+        <div><span style="color: var(--text-muted);">Public ID</span><br><strong><%= a.child_public_id || '—' %></strong></div>
+        <div><span style="color: var(--text-muted);">Gender</span><br><%= a.child_gender || '—' %></div>
+        <div><span style="color: var(--text-muted);">DOB</span><br><%= dstr(a.child_date_of_birth) %></div>
+        <div><span style="color: var(--text-muted);">Child record status</span><br><span class="status-tag status-<%= a.child_status %>"><%= a.child_status %></span></div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 20px;">
+    <h2 style="font-size: 18px; margin-bottom: 16px;">Adopter</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; font-size: 14px;">
+        <div><span style="color: var(--text-muted);">Full name</span><br><strong><%= a.adopter_full_name %></strong></div>
+        <div><span style="color: var(--text-muted);">Gender / DOB</span><br><%= a.adopter_gender %> · <%= dstr(a.adopter_dob) %></div>
+        <div><span style="color: var(--text-muted);">Nationality / Country</span><br><%= a.adopter_nationality || '—' %></div>
+        <div><span style="color: var(--text-muted);">Phone</span><br><%= a.adopter_phone %></div>
+        <div><span style="color: var(--text-muted);">Email</span><br><%= a.adopter_email %></div>
+        <div style="grid-column: 1 / -1;"><span style="color: var(--text-muted);">Address</span><br><%= a.adopter_address %></div>
+        <div><span style="color: var(--text-muted);">Marital status</span><br><%= a.marital_status %></div>
+        <div><span style="color: var(--text-muted);">Children in household</span><br><%= a.number_of_children %></div>
+        <div><span style="color: var(--text-muted);">Occupation</span><br><%= a.occupation || '—' %></div>
+        <div><span style="color: var(--text-muted);">Income level</span><br><%= a.income_level || '—' %></div>
+        <div><span style="color: var(--text-muted);">House</span><br><%= a.house_type || '—' %></div>
+        <div><span style="color: var(--text-muted);">ID</span><br><%= a.identification_type %> — <%= a.identification_number %></div>
+        <div><span style="color: var(--text-muted);">Assigned staff</span><br><%= a.assigned_staff || '—' %></div>
+    </div>
+</div>
+
+<% if (a.notes) { %>
+<div class="card">
+    <h2 style="font-size: 18px; margin-bottom: 12px;">Notes</h2>
+    <p style="white-space: pre-wrap; color: var(--text-main); font-size: 14px;"><%= a.notes %></p>
+</div>
+<% } %>
+</div>

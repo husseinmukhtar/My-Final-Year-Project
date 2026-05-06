@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Abandoned Child</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .report-child-scrollable {
+            max-height: 80vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            padding-right: 10px;
+            scrollbar-gutter: stable;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 576px) {
+            .report-child-scrollable {
+                max-height: 75vh;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <% const f = typeof form !== 'undefined' && form ? form : {}; %>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">OMS</a>
+            <a class="btn btn-outline-light btn-sm" href="/public/child-report">Back</a>
+        </div>
+    </nav>
+
+    <main class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="report-child-scrollable">
+                            <h1 class="h3 fw-bold mb-2">Report Abandoned Child</h1>
+                            <p class="text-muted mb-4">Provide the details available to you. Our team will review the submission.</p>
+
+                            <% if (typeof success !== 'undefined' && success) { %>
+                                <div class="alert alert-success"><%= success %></div>
+                            <% } %>
+                            <% if ((typeof error !== 'undefined' && error) || (typeof locals !== 'undefined' && locals.error)) { %>
+                                <div class="alert alert-danger"><%= error || locals.error %></div>
+                            <% } %>
+
+                            <form action="/public/report-child" method="POST" enctype="multipart/form-data">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label">Reporter Name</label>
+                                        <input class="form-control" type="text" name="reporter_name" required value="<%= f.reporter_name || '' %>">
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label">Reporter Phone</label>
+                                        <input class="form-control" type="text" name="reporter_phone" required value="<%= f.reporter_phone || '' %>">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Location Found</label>
+                                        <input class="form-control" type="text" name="location_found" required value="<%= f.location_found || '' %>">
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label">Child Estimated Age</label>
+                                        <input class="form-control" type="number" min="0" name="child_age" value="<%= f.child_age || '' %>">
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label">Child Gender</label>
+                                        <select class="form-select" name="child_gender">
+                                            <% ['Unknown','Male','Female'].forEach(function (gender) { %>
+                                                <option value="<%= gender %>" <%= (f.child_gender || 'Unknown') === gender ? 'selected' : '' %>><%= gender %></option>
+                                            <% }); %>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" name="description" rows="4"><%= f.description || '' %></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Upload Child Photo</label>
+                                        <input class="form-control" type="file" name="child_photo" accept="image/*">
+                                        <div class="form-text">Images only, max 5MB.</div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
+                                    <a class="btn btn-outline-secondary" href="/public/child-report">Cancel</a>
+                                    <button class="btn btn-primary" type="submit">Submit Report</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

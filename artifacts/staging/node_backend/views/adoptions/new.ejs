@@ -1,0 +1,92 @@
+<%- include('../partials/header', { pageTitle: 'Add Adoption Request', activePage: 'adoptions' }) %>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Add New Adoption Request
+</div>
+
+<div class="card form-container">
+    <form action="/adoptions" method="POST" class="validate-form" novalidate>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Applicant Name</label>
+                <input type="text" name="applicant_name" class="form-control" required placeholder="Jane Doe">
+                <span class="helper-text">Full legal name of the applicant</span>
+                <span class="invalid-feedback">Applicant name is required.</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" required placeholder="contact@example.com">
+                <span class="invalid-feedback">A valid email address is required.</span>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" name="phone" class="form-control" required placeholder="+1 234 567 890">
+                <span class="invalid-feedback">Phone number is required.</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Child Name</label>
+                <!-- For now, maintaining feature parity with a text field -->
+                <input type="text" name="child_name" class="form-control" required placeholder="Child's Name">
+                <span class="helper-text">The child they are adopting</span>
+                <span class="invalid-feedback">Child name is required.</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Address</label>
+            <textarea name="address" class="form-control" rows="3" required placeholder="Full physical address"></textarea>
+            <span class="invalid-feedback">Address is required.</span>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control" required>
+                    <option value="" disabled selected>Select Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+                <span class="invalid-feedback">Please select a status.</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Request Date</label>
+                <input type="date" name="request_date" class="form-control" required>
+                <span class="invalid-feedback">Request date is required.</span>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/adoptions" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Submit Request
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const forms = document.querySelectorAll('.validate-form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+
+<%- include('../partials/footer') %>

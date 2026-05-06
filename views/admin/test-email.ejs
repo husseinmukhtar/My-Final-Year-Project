@@ -1,0 +1,44 @@
+<div class="page-title" style="margin-bottom: 10px;">SMTP Test Email</div>
+<p style="color: var(--text-muted); margin: 0 0 24px;">Send a verification email using the system's current Nodemailer SMTP configuration.</p>
+
+<div class="card" style="max-width: 760px;">
+    <h2 style="font-size: 18px; margin-bottom: 16px; color: var(--text-main);">Configuration status</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 18px;">
+        <div>
+            <div style="color: var(--text-muted); font-size: 13px;">SMTP host</div>
+            <div><strong><%= smtpStatus.host || 'Not set' %></strong></div>
+        </div>
+        <div>
+            <div style="color: var(--text-muted); font-size: 13px;">SMTP port</div>
+            <div><strong><%= smtpStatus.port || 'Not set' %></strong></div>
+        </div>
+        <div>
+            <div style="color: var(--text-muted); font-size: 13px;">Secure connection</div>
+            <div><strong><%= smtpStatus.secure ? 'true' : 'false' %></strong></div>
+        </div>
+        <div>
+            <div style="color: var(--text-muted); font-size: 13px;">From address</div>
+            <div><strong><%= smtpStatus.from || 'Not set' %></strong></div>
+        </div>
+        <div style="grid-column: 1 / -1;">
+            <div style="color: var(--text-muted); font-size: 13px;">Notification recipient</div>
+            <div><strong><%= smtpStatus.to || 'Not set' %></strong></div>
+        </div>
+    </div>
+
+    <% if (smtpStatus.configured) { %>
+        <div class="alert alert-success" style="margin-bottom: 18px;">
+            <i class="fa-solid fa-circle-check"></i> SMTP appears configured. The test email will be sent to <strong><%= smtpStatus.to %></strong>.
+        </div>
+    <% } else { %>
+        <div class="alert alert-error" style="margin-bottom: 18px;">
+            <i class="fa-solid fa-circle-exclamation"></i> SMTP is not fully configured. Missing: <%= smtpStatus.missing.join(', ') %>
+        </div>
+    <% } %>
+
+    <form action="/admin/test-email" method="POST">
+        <button type="submit" class="btn btn-primary" <%= smtpStatus.configured ? '' : 'disabled' %>>
+            <i class="fa-solid fa-paper-plane"></i> Send Test Email
+        </button>
+    </form>
+</div>

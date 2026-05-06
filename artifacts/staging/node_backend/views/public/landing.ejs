@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orphanage Management System</title>
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    /* Modal layout styles on top of style.css */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .modal-content {
+        background: rgba(15, 23, 42, 0.85); /* Deep slate with transparency */
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem;
+        box-shadow: 0 0 40px rgba(99, 102, 241, 0.2), 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        transform: translateY(20px) scale(0.95);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .modal-overlay.active .modal-content {
+        transform: translateY(0) scale(1);
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+
+    .modal-close:hover {
+        color: white;
+    }
+
+    .type-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        background: rgba(0,0,0,0.2);
+        padding: 0.375rem;
+        border-radius: 9999px;
+        border: 1px solid var(--glassborder);
+    }
+
+    .type-toggle label {
+        flex: 1;
+        margin: 0;
+        text-align: center;
+        padding: 0.625rem;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .type-toggle input[type="radio"] {
+        display: none;
+    }
+
+    .type-toggle input[type="radio"]:checked + label {
+        background: var(--primary);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+    }
+
+    .form-row {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .form-row .form-group {
+        flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Decorators -->
+  <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary rounded-full mix-blend-screen filter blur-[128px] opacity-30 animate-pulse-slow"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary rounded-full mix-blend-screen filter blur-[128px] opacity-20"></div>
+  
+  <header>
+    <nav class="navbar">
+      <h1 class="logo"><i class="fa-solid fa-hands-holding-child text-primary mr-2"></i> OMS<span class="text-primary text-xs ml-1 font-mono">SYSTEM</span></h1>
+      <ul class="nav-links">
+        <li class="desktop-only"><a href="/">Home</a></li>
+        <li class="desktop-only"><a href="#about">About</a></li>
+        <li class="desktop-only"><a href="#contact">Contact</a></li>
+        <li><a href="#" onclick="openDonationModal(); return false;" class="btn btn-donate shimmer-btn">Donate <i class="fa-solid fa-heart ml-1"></i></a></li>
+        <li><a href="/login" class="btn btn-outline btn-small">Login</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="flex-grow flex flex-col items-center justify-center relative z-10">
+    <section class="hero exciting-hero">
+      <div class="hero-content">
+        <div class="hero-left text-center">
+          <p class="hero-tag">Care • Support • Hope</p>
+          <h2>Building a Better Future for Every Child</h2>
+          <p class="hero-desc">
+            A smart orphanage management system for managing children records,
+            staff, donations, and adoption requests in one secure place.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="/login" class="btn btn-primary shimmer-btn">Login / Dashboard</a>
+            <a href="#" onclick="openDonationModal(); return false;" class="btn btn-donate shimmer-btn">Donate Now <i class="fa-solid fa-heart ml-1"></i></a>
+          </div>
+
+          <div class="quick-stats">
+            <div class="mini-stat">
+              <h3>120+</h3>
+              <p>Children</p>
+            </div>
+            <div class="mini-stat">
+              <h3>35+</h3>
+              <p>Staff</p>
+            </div>
+            <div class="mini-stat">
+              <h3>200+</h3>
+              <p>Donors</p>
+            </div>
+          </div>
+        </div>
+        <div class="hero-right">
+          <img src="/images/hero_bg.png" alt="Hope and Future Illustration" class="hero-illustration">
+        </div>
+      </div>
+    </section>
+
+    <section class="welcome-section" id="about">
+      <div class="welcome-text">
+        <h2>Welcome to OMS</h2>
+        <p>
+          The Orphanage Management System is designed to improve the way orphanages
+          organize daily activities and store important information. It reduces paperwork,
+          improves efficiency, and supports better care for children.
+        </p>
+      </div>
+    </section>
+
+    <section class="features">
+      <h2>Core Features</h2>
+      <div class="feature-box">
+        <div class="card">
+          <div class="icon"><i class="fa-solid fa-child"></i></div>
+          <h3>Child Records</h3>
+          <p>Store health, education, and personal details safely and clearly.</p>
+        </div>
+        <div class="card hover-card icon-card">
+          <div class="icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+          <h3>Staff Management</h3>
+          <p>Manage staff profiles, roles, and responsibilities with ease.</p>
+        </div>
+        <div class="card hover-card icon-card">
+          <div class="icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+          <h3>Donations</h3>
+          <p>Track cash and item donations from donors in an organized way.</p>
+        </div>
+        <div class="card hover-card icon-card">
+          <div class="icon"><i class="fa-solid fa-file-signature"></i></div>
+          <h3>Adoption Requests</h3>
+          <p>Receive, review, and manage adoption applications professionally.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="image-banner">
+      <div class="overlay">
+        <h2>Every Child Deserves Love, Safety, and Opportunity</h2>
+        <p>Technology can help care teams focus more on people and less on paperwork.</p>
+      </div>
+    </section>
+
+    <section class="testimonial-section">
+      <h2>Why This Project Is Valuable</h2>
+      <div class="feature-box">
+        <div class="card testimonial-card">
+          <p>"A digital system improves record keeping and makes management faster."</p>
+          <h4 style="margin-top: 15px; color: var(--primary);">Project Benefit</h4>
+        </div>
+        <div class="card testimonial-card">
+          <p>"Donation tracking becomes more transparent and easier to manage."</p>
+          <h4 style="margin-top: 15px; color: var(--primary);">System Strength</h4>
+        </div>
+        <div class="card testimonial-card">
+          <p>"The dashboard gives a clear overview of daily orphanage operations."</p>
+          <h4 style="margin-top: 15px; color: var(--primary);">Admin Advantage</h4>
+        </div>
+      </div>
+    </section>
+
+    <footer class="main-footer" id="contact">
+      <div class="footer-content" style="max-width: 1200px; margin: 0 auto;">
+        <div class="footer-box">
+          <h3>OMS</h3>
+          <p style="color: var(--text-muted); font-size: 14px;">A web-based orphanage management system for better care and organization.</p>
+        </div>
+        <div class="footer-box">
+          <h3 style="margin-bottom: 10px;">Contact</h3>
+          <p style="color: var(--text-muted); font-size: 14px;"><i class="fa-solid fa-envelope mr-2"></i> info@oms.com</p>
+          <p style="color: var(--text-muted); font-size: 14px;"><i class="fa-solid fa-phone mr-2"></i> +234 000 000 0000</p>
+          <p style="color: var(--text-muted); font-size: 14px;"><i class="fa-solid fa-location-dot mr-2"></i> Your City</p>
+        </div>
+      </div>
+      <p class="footer-bottom" style="text-align: center; color: var(--text-muted); margin-top: 30px; font-size: 13px;">&copy; 2026 Orphanage Management System. All rights reserved.</p>
+    </footer>
+  </main>
+
+  <!-- Donation Modal -->
+  <div class="modal-overlay" id="donationModal" onclick="closeModalOutside(event)">
+      <div class="modal-content">
+          <button class="modal-close" onclick="closeDonationModal()"><i class="fa-solid fa-xmark"></i></button>
+          
+          <h2 style="color: white; font-size: 24px; margin-bottom: 24px;">Make a Donation</h2>
+          <form action="/donate" method="POST">
+              <div class="type-toggle">
+                  <input type="radio" id="type-cash" name="donation_type" value="Cash" checked onchange="toggleFields()">
+                  <label for="type-cash">Monetary</label>
+                  
+                  <input type="radio" id="type-items" name="donation_type" value="Items" onchange="toggleFields()">
+                  <label for="type-items">Physical Items</label>
+              </div>
+
+              <div class="form-row">
+                  <div class="form-group">
+                      <label>Full Name</label>
+                      <input type="text" name="donor_name" required placeholder="John Doe">
+                  </div>
+                  <div class="form-group">
+                      <label>Email Address</label>
+                      <input type="email" name="donor_email" required placeholder="john@example.com">
+                  </div>
+              </div>
+
+              <!-- Cash Fields -->
+              <div id="cash-fields">
+                  <div class="form-row">
+                      <div class="form-group">
+                          <label>Currency</label>
+                          <select name="currency" id="currency">
+                              <option value="$">USD ($)</option>
+                              <option value="₦">NGN (₦)</option>
+                              <option value="€">EUR (€)</option>
+                              <option value="£">GBP (£)</option>
+                          </select>
+                      </div>
+                      <div class="form-group">
+                          <label>Amount</label>
+                          <input type="number" name="amount" id="amount" step="0.01" min="1" placeholder="0.00">
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label>Payment Method</label>
+                      <select name="payment_method" id="payment_method" onchange="togglePaymentDetails()">
+                          <option value="" disabled selected>Select Payment Method</option>
+                          <option value="Credit Card">Credit Card</option>
+                          <option value="Bank Transfer">Bank Transfer</option>
+                      </select>
+                  </div>
+              </div>
+
+              <!-- Payment Details Fields -->
+              <div id="credit-card-fields" style="display: none; margin-top: 1rem; margin-bottom: 1.5rem; padding: 1.5rem; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(236, 72, 153, 0.3); box-shadow: inset 0 0 20px rgba(236, 72, 153, 0.05);">
+                  <h4 style="margin-top: 0; color: #f472b6; margin-bottom: 1rem;"><i class="fa-regular fa-credit-card"></i> Credit Card Details</h4>
+                  
+                  <div class="form-group">
+                      <label>Card Number</label>
+                      <input type="text" id="card_number" name="card_number" placeholder="0000 0000 0000 0000" maxlength="19" style="letter-spacing: 2px; font-size: 16px; font-family: monospace; border-color: rgba(99,102,241,0.4); background: rgba(0,0,0,0.4);">
+                  </div>
+
+                  <!-- Card Name moved BELOW Card Number as requested -->
+                  <div class="form-group">
+                      <label>Cardholder Name</label>
+                      <input type="text" name="card_name" placeholder="Name on card" style="text-transform: uppercase; border-color: rgba(99,102,241,0.4); background: rgba(0,0,0,0.4);">
+                  </div>
+
+                  <div class="form-row">
+                      <div class="form-group">
+                          <label>Expiry (MM/YY)</label>
+                          <input type="text" name="card_expiry" placeholder="12/26" maxlength="5" style="border-color: rgba(99,102,241,0.4); background: rgba(0,0,0,0.4);">
+                      </div>
+                      <div class="form-group">
+                          <label>CVV</label>
+                          <input type="password" name="card_cvv" placeholder="123" maxlength="3" style="border-color: rgba(99,102,241,0.4); background: rgba(0,0,0,0.4);">
+                      </div>
+                  </div>
+              </div>
+
+              <div id="bank-transfer-fields" style="display: none; margin-top: 1rem; margin-bottom: 1.5rem; text-align: center; padding: 1.5rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--glassborder);">
+                  <h4 style="margin-top: 0; color: #fff;"><i class="fa-solid fa-building-columns"></i> Bank Transfer Instructions</h4>
+                  <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Please transfer the exact amount to the following account:</p>
+                  <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: inline-block;">
+                      <div style="font-size: 0.9rem; color: var(--text-muted);">HOPE ORPHANAGE TRUST</div>
+                      <div style="font-size: 1.5rem; letter-spacing: 2px; font-weight: bold; margin: 0.5rem 0; color: #fff;">0123456789</div>
+                      <div style="font-size: 0.9rem; color: var(--text-muted);">Global Bank Plc</div>
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                      <input type="checkbox" id="transfer_confirmed" name="transfer_confirmed" style="width: auto; margin:0; padding:0;">
+                      <label for="transfer_confirmed" style="margin: 0; color: #fff; cursor: pointer;">I confirm I have made this transfer</label>
+                  </div>
+              </div>
+
+              <!-- Item Fields -->
+              <div id="item-fields" class="form-group" style="display: none;">
+                  <label>Item Description / Quantity</label>
+                  <textarea name="item_description" id="item_description" rows="3" placeholder="E.g., 20 boxes of clothes, 5 crates of milk..."></textarea>
+              </div>
+
+              <button type="submit" class="submit-btn" style="width: 100%;">Complete Donation</button>
+          </form>
+      </div>
+  </div>
+
+  <script>
+      // Modal logic
+      function openDonationModal() {
+          document.getElementById('donationModal').classList.add('active');
+          document.body.style.overflow = 'hidden';
+      }
+
+      function closeDonationModal() {
+          document.getElementById('donationModal').classList.remove('active');
+          document.body.style.overflow = 'auto';
+      }
+
+      function closeModalOutside(event) {
+          if (event.target === document.getElementById('donationModal')) {
+              closeDonationModal();
+          }
+      }
+
+      // Form Fields Logic
+      function toggleFields() {
+          const isCash = document.getElementById('type-cash').checked;
+          const cashFields = document.getElementById('cash-fields');
+          const itemFields = document.getElementById('item-fields');
+          
+          const currency = document.getElementById('currency');
+          const amount = document.getElementById('amount');
+          const paymentMethod = document.getElementById('payment_method');
+          const desc = document.getElementById('item_description');
+
+          if (isCash) {
+              cashFields.style.display = 'block';
+              itemFields.style.display = 'none';
+              
+              currency.setAttribute('required', 'true');
+              amount.setAttribute('required', 'true');
+              paymentMethod.setAttribute('required', 'true');
+              desc.removeAttribute('required');
+              desc.value = '';
+              togglePaymentDetails();
+          } else {
+              cashFields.style.display = 'none';
+              itemFields.style.display = 'block';
+
+              desc.setAttribute('required', 'true');
+              currency.removeAttribute('required');
+              amount.removeAttribute('required');
+              paymentMethod.removeAttribute('required');
+              currency.value = '';
+              amount.value = '';
+              paymentMethod.value = '';
+              togglePaymentDetails();
+          }
+      }
+
+      function togglePaymentDetails() {
+          const method = document.getElementById('payment_method').value;
+          const cardFields = document.getElementById('credit-card-fields');
+          const bankFields = document.getElementById('bank-transfer-fields');
+          const isCash = document.getElementById('type-cash').checked;
+          
+          const cardName = document.querySelector('[name="card_name"]');
+          const cardNum = document.querySelector('[name="card_number"]');
+          const cardExp = document.querySelector('[name="card_expiry"]');
+          const cardCvv = document.querySelector('[name="card_cvv"]');
+          const transferConfirmed = document.getElementById('transfer_confirmed');
+
+          if (!isCash) {
+              cardFields.style.display = 'none';
+              bankFields.style.display = 'none';
+              cardName.removeAttribute('required');
+              cardNum.removeAttribute('required');
+              cardExp.removeAttribute('required');
+              cardCvv.removeAttribute('required');
+              transferConfirmed.removeAttribute('required');
+              return;
+          }
+
+          if (method === 'Credit Card') {
+              cardFields.style.display = 'block';
+              bankFields.style.display = 'none';
+              
+              cardName.setAttribute('required', 'true');
+              cardNum.setAttribute('required', 'true');
+              cardExp.setAttribute('required', 'true');
+              cardCvv.setAttribute('required', 'true');
+              transferConfirmed.removeAttribute('required');
+          } else if (method === 'Bank Transfer') {
+              cardFields.style.display = 'none';
+              bankFields.style.display = 'block';
+              
+              cardName.removeAttribute('required');
+              cardNum.removeAttribute('required');
+              cardExp.removeAttribute('required');
+              cardCvv.removeAttribute('required');
+              transferConfirmed.setAttribute('required', 'true');
+          } else {
+              cardFields.style.display = 'none';
+              bankFields.style.display = 'none';
+              
+              cardName.removeAttribute('required');
+              cardNum.removeAttribute('required');
+              cardExp.removeAttribute('required');
+              cardCvv.removeAttribute('required');
+              transferConfirmed.removeAttribute('required');
+          }
+      }
+      
+      // Card formatting with spacing
+      document.getElementById('card_number').addEventListener('input', function (e) {
+          let target = e.target;
+          let val = target.value.replace(/\D/g, '').substring(0, 16);
+          let parts = val.match(/.{1,4}/g);
+          target.value = parts ? parts.join(' ') : '';
+      });
+
+      // Error handling via server render variables
+      <% if (typeof error !== 'undefined' && error) { %>
+          Swal.fire({
+              icon: 'error',
+              title: 'Submission Error',
+              text: '<%= error %>',
+              background: '#1E293B',
+              color: '#fff',
+              confirmButtonColor: '#EF4444'
+          }).then(() => {
+              openDonationModal();
+          });
+      <% } %>
+
+      // Success handling
+      <% if (typeof success !== 'undefined' && success) { %>
+          Swal.fire({
+              icon: 'success',
+              title: 'Thank You!',
+              text: 'Your generous donation has been successfully recorded.',
+              background: '#1E293B',
+              color: '#fff',
+              confirmButtonColor: '#EF4444'
+          });
+      <% } %>
+
+      // Initial setup
+      toggleFields();
+  </script>
+</body>
+</html>

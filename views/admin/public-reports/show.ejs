@@ -1,0 +1,34 @@
+<div class="page-title" style="margin-bottom: 24px;">Public Report #<%= report.id %></div>
+
+<div class="card form-container">
+    <h2 class="h5">Abandoned child report</h2>
+    <p><strong>Reporter:</strong> <%= report.reporter_name %></p>
+    <p><strong>Phone:</strong> <%= report.reporter_phone || 'N/A' %></p>
+    <p><strong>Location:</strong> <%= report.location || 'N/A' %></p>
+    <p><strong>Child age estimate:</strong> <%= report.child_age_estimate || 'N/A' %></p>
+    <p><strong>Gender:</strong> <%= report.child_gender || 'N/A' %></p>
+    <p><strong>Description:</strong></p>
+    <p style="white-space: pre-wrap;"><%= report.description %></p>
+    <% if (report.attachment_path) { %>
+        <p><a class="btn btn-secondary" href="<%= report.attachment_path %>" target="_blank" rel="noopener"><i class="fa-solid fa-paperclip"></i> Open attachment</a></p>
+    <% } %>
+
+    <form action="/admin/public-reports/<%= report.id %>" method="POST">
+        <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" name="status">
+                <% ['Pending','Approved','Rejected'].forEach(function (status) { %>
+                    <option value="<%= status %>" <%= report.status === status ? 'selected' : '' %>><%= status %></option>
+                <% }); %>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Admin notes</label>
+            <textarea class="form-control" name="admin_notes" rows="4"><%= report.admin_notes || '' %></textarea>
+        </div>
+        <div class="form-actions">
+            <a href="/admin/public-reports" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back</a>
+            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-check"></i> Save</button>
+        </div>
+    </form>
+</div>

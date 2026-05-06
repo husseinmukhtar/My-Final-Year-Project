@@ -1,0 +1,37 @@
+<div class="page-title" style="margin-bottom: 24px;">Admission Request #<%= admission.id %></div>
+
+<div class="card form-container">
+    <h2 class="h5">Child</h2>
+    <p><strong>Name:</strong> <%= admission.child_name %></p>
+    <p><strong>Gender:</strong> <%= admission.child_gender %></p>
+    <p><strong>Age:</strong> <%= admission.child_age || 'N/A' %></p>
+    <p><strong>Reason:</strong></p>
+    <p style="white-space: pre-wrap;"><%= admission.admission_reason %></p>
+
+    <h2 class="h5 mt-4">Guardian</h2>
+    <p><strong>Name:</strong> <%= admission.guardian_name %></p>
+    <p><strong>Phone:</strong> <%= admission.guardian_phone %></p>
+    <p><strong>Relationship:</strong> <%= admission.relationship_to_child || 'N/A' %></p>
+    <% if (admission.supporting_document_path) { %>
+        <p><a class="btn btn-secondary" href="<%= admission.supporting_document_path %>" target="_blank" rel="noopener"><i class="fa-solid fa-paperclip"></i> Open document</a></p>
+    <% } %>
+
+    <form action="/admin/public-admissions/<%= admission.id %>" method="POST">
+        <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" name="status">
+                <% ['Pending','Approved','Rejected'].forEach(function (status) { %>
+                    <option value="<%= status %>" <%= admission.status === status ? 'selected' : '' %>><%= status %></option>
+                <% }); %>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Admin notes</label>
+            <textarea class="form-control" name="admin_notes" rows="4"><%= admission.admin_notes || '' %></textarea>
+        </div>
+        <div class="form-actions">
+            <a href="/admin/public-admissions" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back</a>
+            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-check"></i> Save</button>
+        </div>
+    </form>
+</div>

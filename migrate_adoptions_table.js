@@ -1,0 +1,54 @@
+/**
+ * Creates `adoptions` table (child-linked adoption management).
+ * Run: node migrate_adoptions_table.js
+ */
+const pool = require('./config/db');
+
+const createSql = `
+CREATE TABLE IF NOT EXISTS adoptions (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  child_id INT NOT NULL,
+  adopter_full_name VARCHAR(255) NOT NULL,
+  adopter_gender VARCHAR(20) NOT NULL,
+  adopter_dob DATE NULL,
+  adopter_phone VARCHAR(40) NOT NULL,
+  adopter_nationality VARCHAR(80) NULL,
+  adopter_phone_country_iso VARCHAR(8) NULL,
+  adopter_phone_country_code VARCHAR(8) NULL,
+  adopter_email VARCHAR(255) NOT NULL,
+  adopter_address TEXT NOT NULL,
+  occupation VARCHAR(200) NULL,
+  marital_status VARCHAR(20) NOT NULL,
+  number_of_children INT NOT NULL DEFAULT 0,
+  income_level VARCHAR(80) NULL,
+  house_type VARCHAR(20) NULL,
+  identification_type VARCHAR(40) NOT NULL,
+  identification_number VARCHAR(120) NOT NULL,
+  adoption_status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+  application_date DATE NOT NULL,
+  approval_date DATE NULL,
+  visit_scheduled_at DATETIME NULL,
+  assigned_staff VARCHAR(200) NULL,
+  notes TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_adoptions_child FOREIGN KEY (child_id) REFERENCES children(id)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  INDEX idx_adoptions_child (child_id),
+  INDEX idx_adoptions_status (adoption_status),
+  INDEX idx_adoptions_app_date (application_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+`;
+
+async function run() {
+    try {
+        await pool.query(createSql);
+        console.log('Table adoptions ready.');
+    } catch (e) {
+        console.error(e.message);
+        process.exit(1);
+    }
+    process.exit(0);
+}
+
+run();

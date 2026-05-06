@@ -1,0 +1,96 @@
+<%- include('../partials/header', { pageTitle: 'Donations Management', activePage: 'donations' }) %>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Donation Records Directory
+</div>
+
+<!-- FILTER BAR -->
+<form action="/donations" method="GET" class="filter-bar">
+    <div class="filter-group">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); padding-left: 10px; position: absolute;"></i>
+        <input type="text" name="search" placeholder="Search by donor name..." value="<%= search || '' %>" style="padding-left: 36px;">
+    </div>
+    <div class="filter-group" style="flex: 0;">
+        <button type="submit" class="btn btn-secondary">
+            Search
+        </button>
+        <% if (search) { %>
+            <a href="/donations" class="btn btn-danger" style="margin-left: 10px; font-weight: normal;">
+                <i class="fa-solid fa-xmark"></i> Clear
+            </a>
+        <% } %>
+    </div>
+</form>
+
+<div style="margin-bottom: 24px;">
+    <a href="/donations/new" class="btn btn-primary">
+        <i class="fa-solid fa-hand-holding-dollar"></i> Add New Donation
+    </a>
+</div>
+
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Donor Name</th>
+                <th>Donor Email</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Item Description</th>
+                <th>Donation Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (donations && donations.length > 0) { %>
+                <% donations.forEach(donation => { %>
+                    <tr>
+                        <td><strong style="color: var(--text-muted);">#<%= donation.id %></strong></td>
+                        <td style="font-weight: 500;"><%= donation.donor_name %></td>
+                        <td><%= donation.donor_email %></td>
+                        <td>
+                            <span class="status-tag status-<%= donation.donation_type === 'Cash' ? 'Approved' : 'Pending' %>">
+                                <%= donation.donation_type %>
+                            </span>
+                        </td>
+                        <td><%= donation.donation_type === 'Cash' ? (donation.currency === 'NGN' ? '₦' : '$') + donation.amount : 'N/A' %></td>
+                        <td><%= donation.donation_type === 'Items' ? donation.item_description : 'N/A' %></td>
+                        <% 
+                            let displayDate = donation.donation_date;
+                            if (displayDate instanceof Date) {
+                                const y = displayDate.getFullYear();
+                                const m = String(displayDate.getMonth() + 1).padStart(2, '0');
+                                const d = String(displayDate.getDate()).padStart(2, '0');
+                                displayDate = `${y}-${m}-${d}`;
+                            }
+                        %>
+                        <td><%= displayDate %></td>
+                        <td>
+                            <div class="actions-cell">
+                                <a href="/donations/<%= donation.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <form action="/donations/<%= donation.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
+                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px;">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                        <i class="fa-solid fa-hand-holding-heart" style="font-size: 40px; margin-bottom: 20px; display: block; opacity: 0.3;"></i>
+                        <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-main);">No donations found</h3>
+                        <p>No donation records match your search or currently exist.</p>
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,47 @@
+<div class="page-title" style="margin-bottom: 24px;">Public Admission Requests</div>
+
+<form action="/admin/public-admissions" method="GET" class="filter-bar">
+    <div class="filter-group">
+        <input type="text" name="search" placeholder="Search guardian or child..." value="<%= search || '' %>">
+    </div>
+    <div class="filter-group">
+        <select name="status">
+            <option value="">All statuses</option>
+            <% ['Pending','Approved','Rejected'].forEach(function (status) { %>
+                <option value="<%= status %>" <%= statusFilter === status ? 'selected' : '' %>><%= status %></option>
+            <% }); %>
+        </select>
+    </div>
+    <button class="btn btn-secondary" type="submit">Filter</button>
+</form>
+
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Child</th>
+                <th>Guardian</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (admissions && admissions.length) { %>
+                <% admissions.forEach(function (admission) { %>
+                    <tr>
+                        <td>#<%= admission.id %></td>
+                        <td><%= admission.child_name %></td>
+                        <td><%= admission.guardian_name %></td>
+                        <td><span class="badge bg-secondary"><%= admission.status %></span></td>
+                        <td><%= admission.created_at ? String(admission.created_at).slice(0, 10) : '' %></td>
+                        <td><a class="btn btn-secondary btn-sm" href="/admin/public-admissions/<%= admission.id %>">View</a></td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr><td colspan="6" class="text-center p-4">No admission requests found.</td></tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>

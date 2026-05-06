@@ -1,0 +1,89 @@
+<div class="page-title" style="margin-bottom: 24px;">
+    Staff Management Directory
+</div>
+
+<!-- FILTER BAR -->
+<form action="/staff" method="GET" class="filter-bar">
+    <div class="filter-group">
+        <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted); padding-left: 10px; position: absolute;"></i>
+        <input type="text" name="search" placeholder="Search by staff name..." value="<%= search || '' %>" style="padding-left: 36px;">
+    </div>
+    <div class="filter-group" style="flex: 0;">
+        <button type="submit" class="btn btn-secondary">
+            Search
+        </button>
+        <% if (search) { %>
+            <a href="/staff" class="btn btn-danger" style="margin-left: 10px; font-weight: normal;">
+                <i class="fa-solid fa-xmark"></i> Clear
+            </a>
+        <% } %>
+    </div>
+</form>
+
+<div style="margin-bottom: 24px;">
+    <a href="/staff/new" class="btn btn-primary">
+        <i class="fa-solid fa-user-plus"></i> Add New Staff Member
+    </a>
+</div>
+
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Date Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (staffList && staffList.length > 0) { %>
+                <% staffList.forEach(member => { %>
+                    <tr>
+                        <td><strong style="color: var(--text-muted);">#<%= member.id %></strong></td>
+                        <td style="font-weight: 500;"><%= member.full_name %></td>
+                        <td><%= member.email %></td>
+                        <td><%= member.phone %></td>
+                        <td>
+                            <!-- Generic formatting since roles aren't strictly ENUM matching -->
+                            <span class="status-tag"><%= member.role %></span>
+                        </td>
+                        <% 
+                            let displayDate = member.date_joined;
+                            if (displayDate instanceof Date) {
+                                const y = displayDate.getFullYear();
+                                const m = String(displayDate.getMonth() + 1).padStart(2, '0');
+                                const d = String(displayDate.getDate()).padStart(2, '0');
+                                displayDate = `${y}-${m}-${d}`;
+                            }
+                        %>
+                        <td><%= displayDate %></td>
+                        <td>
+                            <div class="actions-cell">
+                                <a href="/staff/<%= member.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <form action="/staff/<%= member.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
+                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px;">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                        <i class="fa-solid fa-users-slash" style="font-size: 40px; margin-bottom: 20px; display: block; opacity: 0.3;"></i>
+                        <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-main);">No staff found</h3>
+                        <p>No staff members match your search or currently exist.</p>
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>

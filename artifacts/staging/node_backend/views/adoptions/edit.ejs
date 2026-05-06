@@ -1,0 +1,105 @@
+<%- include('../partials/header', { pageTitle: 'Edit Adoption Request', activePage: 'adoptions' }) %>
+
+<div class="page-title" style="margin-bottom: 24px;">
+    Edit Adoption Request
+</div>
+
+<div class="card form-container">
+    <form action="/adoptions/<%= adoption.id %>" method="POST" class="validate-form" novalidate>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Applicant Name</label>
+                <input type="text" name="applicant_name" class="form-control" value="<%= adoption.applicant_name %>" required placeholder="Jane Doe">
+                <span class="helper-text">Full legal name of the applicant</span>
+                <span class="invalid-feedback">Applicant name is required.</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" value="<%= adoption.email %>" required placeholder="contact@example.com">
+                <span class="invalid-feedback">A valid email address is required.</span>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" name="phone" class="form-control" value="<%= adoption.phone %>" required placeholder="+1 234 567 890">
+                <span class="invalid-feedback">Phone number is required.</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Child Name</label>
+                <input type="text" name="child_name" class="form-control" value="<%= adoption.child_name %>" required placeholder="Child's Name">
+                <span class="helper-text">The child they are adopting</span>
+                <span class="invalid-feedback">Child name is required.</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Address</label>
+            <textarea name="address" class="form-control" rows="3" required placeholder="Full physical address"><%= adoption.address %></textarea>
+            <span class="invalid-feedback">Address is required.</span>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control" required>
+                    <option value="Pending" <%= adoption.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="Approved" <%= adoption.status === 'Approved' ? 'selected' : '' %>>Approved</option>
+                    <option value="Rejected" <%= adoption.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+                </select>
+                <span class="invalid-feedback">Please select a status.</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Request Date</label>
+                <!-- Safely formatting local Date to YYYY-MM-DD for standard html5 input mapping -->
+                <% 
+                   let dateVal = '';
+                   if (adoption.request_date) {
+                       const d = new Date(adoption.request_date);
+                       if (!isNaN(d.valueOf())) {
+                           const y = d.getFullYear();
+                           const m = String(d.getMonth() + 1).padStart(2, '0');
+                           const day = String(d.getDate()).padStart(2, '0');
+                           dateVal = `${y}-${m}-${day}`;
+                       } else {
+                           dateVal = adoption.request_date;
+                       }
+                   }
+                %>
+                <input type="date" name="request_date" class="form-control" value="<%= dateVal %>" required>
+                <span class="invalid-feedback">Request date is required.</span>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/adoptions" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Discard Changes
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i> Update Request
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const forms = document.querySelectorAll('.validate-form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+
+<%- include('../partials/footer') %>
