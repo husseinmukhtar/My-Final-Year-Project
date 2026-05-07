@@ -1,6 +1,7 @@
 const express = require('express');
 const methodOverride = require('method-override');
 const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
 const flash = require('connect-flash');
@@ -9,12 +10,32 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust Vercel's proxy (required for secure cookies on HTTPS)
+app.set('trust proxy', 1);
+
+// MySQL Session Store
+const sessionStore = new MySQLStore({
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'orphanage_management_system',
+    clearExpired: true,
+    checkExpirationInterval: 900000,
+    expiration: 86400000,
+    createDatabaseTable: true
+});
+
 // Setup Session Middleware
 app.use(session({
     secret: process.env.SESSION_SECRET || 'oms_node_super_secure_secret',
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 1000 * 60 * 60 * 24 } // 1 day
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 1000 * 60 * 60 * 24 // 1 day
+    }
 }));
 
 // Setup EJS & Layouts
