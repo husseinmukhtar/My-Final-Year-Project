@@ -2,14 +2,17 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
-const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'children');
-const reportUploadDir = path.join(__dirname, '..', 'public', 'uploads', 'reports');
-const donationUploadDir = path.join(__dirname, '..', 'public', 'uploads', 'donations');
+const isVercel = process.env.VERCEL === '1';
+const uploadBase = isVercel ? '/tmp' : path.join(__dirname, '..', 'public');
+
+const uploadDir = path.join(uploadBase, 'uploads', 'children');
+const reportUploadDir = path.join(uploadBase, 'uploads', 'reports');
+const donationUploadDir = path.join(uploadBase, 'uploads', 'donations');
 
 for (const dir of [uploadDir, reportUploadDir, donationUploadDir]) {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
+    try {
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    } catch (e) { /* read-only fs in serverless */ }
 }
 
 function makeStorage(destinationDir) {

@@ -2,10 +2,12 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
-const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'public');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+const isVercel = process.env.VERCEL === '1';
+const uploadBase = isVercel ? '/tmp' : path.join(__dirname, '..', 'public');
+const uploadDir = path.join(uploadBase, 'uploads', 'public');
+try {
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+} catch (e) { /* read-only fs in serverless */ }
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadDir),
