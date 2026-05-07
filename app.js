@@ -104,7 +104,12 @@ app.use((err, req, res, next) => {
     res.status(500).render('500');
 });
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Start Server (local dev only)
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+}
+
+// Export for Vercel serverless
+module.exports = app;
