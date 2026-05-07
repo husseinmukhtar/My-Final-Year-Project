@@ -2,18 +2,39 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 30001;
 
+// Trust Vercel proxy (required for secure cookies on HTTPS)
+app.set('trust proxy', 1);
+
+// MySQL Session Store
+const sessionStore = new MySQLStore({
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'orphanage_management_system',
+    clearExpired: true,
+    checkExpirationInterval: 900000,
+    expiration: 86400000,
+    createDatabaseTable: true
+});
+
 // Setup Session Middleware
 app.use(session({
     secret: process.env.SESSION_SECRET || 'oms_node_super_secure_secret',
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 1000 * 60 * 60 * 24 } // 1 day
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 1000 * 60 * 60 * 24 // 1 day
+    }
 }));
 
 // Setup EJS
@@ -91,7 +112,12 @@ app.use('/public/admission', admissionRoutes);
 app.use('/api/donations', apiDonationsRoutes);
 app.use('/api', apiTestEmailRoutes);
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Start Server (local dev only)
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+}
+
+// Export for Vercel serverless
+module.exports = app;
