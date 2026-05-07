@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apply for Adoption — Orphanage Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh;}
+    nav{background:#1e293b;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #334155;}
+    .brand{font-size:1.3rem;font-weight:700;color:#fff;text-decoration:none;}
+    .nav-links a{color:#94a3b8;text-decoration:none;margin-left:20px;font-size:14px;}
+    .nav-links a:hover{color:#fff;}
+    .container{max-width:800px;margin:40px auto;padding:0 20px 60px;}
+    h1{font-size:28px;margin-bottom:8px;color:#fff;}
+    .subtitle{color:#94a3b8;margin-bottom:32px;font-size:15px;}
+    .card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:28px;margin-bottom:24px;}
+    .card h2{font-size:18px;margin-bottom:20px;color:#e2e8f0;border-bottom:1px solid #334155;padding-bottom:12px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    @media(max-width:600px){.form-row{grid-template-columns:1fr;}}
+    .form-group{margin-bottom:18px;}
+    label{display:block;font-size:13px;color:#94a3b8;margin-bottom:6px;font-weight:500;}
+    label span.req{color:#f87171;}
+    input,select,textarea{width:100%;padding:10px 14px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#f1f5f9;font-size:14px;outline:none;transition:border 0.2s;}
+    input:focus,select:focus,textarea:focus{border-color:#4f46e5;}
+    textarea{resize:vertical;min-height:80px;}
+    select option{background:#1e293b;}
+    .alert{padding:14px 18px;border-radius:8px;margin-bottom:20px;font-size:14px;display:flex;align-items:center;gap:10px;}
+    .alert-success{background:#064e3b;border:1px solid #059669;color:#6ee7b7;}
+    .alert-error{background:#450a0a;border:1px solid #dc2626;color:#fca5a5;}
+    .terms-box{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:16px;max-height:220px;overflow-y:auto;font-size:13px;color:#94a3b8;line-height:1.7;margin-bottom:16px;}
+    .terms-box h4{color:#e2e8f0;margin-bottom:10px;}
+    .terms-box ul{padding-left:20px;}
+    .terms-box li{margin-bottom:8px;}
+    .consequences{background:#1c0a00;border:1px solid #ea580c;border-radius:8px;padding:14px;margin-bottom:16px;}
+    .consequences h4{color:#fb923c;margin-bottom:8px;font-size:14px;}
+    .consequences ul{padding-left:20px;font-size:13px;color:#fed7aa;line-height:1.7;}
+    .check-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;}
+    .check-row input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:#4f46e5;flex-shrink:0;}
+    .check-row label{font-size:13px;color:#cbd5e1;cursor:pointer;}
+    .btn-submit{width:100%;padding:14px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.2s;}
+    .btn-submit:hover{background:#4338ca;}
+    .back-link{color:#94a3b8;text-decoration:none;font-size:14px;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;}
+    .back-link:hover{color:#fff;}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/" class="brand"><i class="fa-solid fa-hands-holding-child"></i> OMS</a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/login">Admin Login</a>
+  </div>
+</nav>
+
+<div class="container">
+  <a href="/" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+  <h1>Adoption Application</h1>
+  <p class="subtitle">Fill in the form below to apply for adoption. All fields marked <span style="color:#f87171">*</span> are required.</p>
+
+  <% if (success) { %>
+    <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i> <%- success %></div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i> <%= error %></div>
+  <% } %>
+
+  <form method="POST" action="/apply-adoption">
+
+    <!-- Child Selection -->
+    <div class="card">
+      <h2><i class="fa-solid fa-child"></i> Child Selection</h2>
+      <div class="form-group">
+        <label>Select a Child (Optional — leave blank if no preference)</label>
+        <select name="child_id">
+          <option value="">— No preference / Any available child —</option>
+          <% children.forEach(c => { %>
+            <option value="<%= c.id %>"><%= c.display_name %> <%= c.child_public_id ? '('+c.child_public_id+')' : '' %> — <%= c.gender || 'Unknown' %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <!-- Applicant Details -->
+    <div class="card">
+      <h2><i class="fa-solid fa-user"></i> Applicant Information</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name <span class="req">*</span></label>
+          <input type="text" name="adopter_full_name" required placeholder="e.g. John Adamu"/>
+        </div>
+        <div class="form-group">
+          <label>Gender <span class="req">*</span></label>
+          <select name="adopter_gender" required>
+            <option value="">Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email Address <span class="req">*</span></label>
+          <input type="email" name="adopter_email" required placeholder="john@example.com"/>
+        </div>
+        <div class="form-group">
+          <label>Phone Number <span class="req">*</span></label>
+          <input type="tel" name="adopter_phone" required placeholder="+234..."/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input type="date" name="adopter_dob"/>
+        </div>
+        <div class="form-group">
+          <label>Nationality</label>
+          <input type="text" name="adopter_nationality" placeholder="e.g. Nigerian"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Home Address <span class="req">*</span></label>
+        <textarea name="adopter_address" required placeholder="Full home address..."></textarea>
+      </div>
+      <div class="form-group">
+        <label><i class="fa-solid fa-location-dot"></i> Current Location <span class="req">*</span></label>
+        <input type="text" name="applicant_location" required placeholder="City, State, Country — e.g. Lagos, Lagos State, Nigeria"/>
+        <small style="color:#64748b;font-size:12px;margin-top:4px;display:block;">This helps us verify your location for the visit process.</small>
+      </div>
+    </div>
+
+    <!-- Background -->
+    <div class="card">
+      <h2><i class="fa-solid fa-briefcase"></i> Background Information</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Occupation</label>
+          <input type="text" name="occupation" placeholder="e.g. Teacher"/>
+        </div>
+        <div class="form-group">
+          <label>Marital Status</label>
+          <select name="marital_status">
+            <option value="">Select...</option>
+            <option value="Single">Single</option>
+            <option value="Married">Married</option>
+            <option value="Divorced">Divorced</option>
+            <option value="Widowed">Widowed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Number of Existing Children</label>
+          <input type="number" name="number_of_children" min="0" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label>Income Level</label>
+          <select name="income_level">
+            <option value="">Select...</option>
+            <option value="Low">Low</option>
+            <option value="Middle">Middle</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>House Type</label>
+          <select name="house_type">
+            <option value="">Select...</option>
+            <option value="Rented">Rented</option>
+            <option value="Owned">Owned</option>
+            <option value="Family House">Family House</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ID Type <span class="req">*</span></label>
+          <select name="identification_type" required>
+            <option value="">Select...</option>
+            <option value="National ID">National ID</option>
+            <option value="Passport">Passport</option>
+            <option value="Driver's License">Driver's License</option>
+            <option value="Voter's Card">Voter's Card</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ID Number <span class="req">*</span></label>
+        <input type="text" name="identification_number" required placeholder="Enter your ID number"/>
+      </div>
+      <div class="form-group">
+        <label>Additional Notes / Message</label>
+        <textarea name="notes" placeholder="Any additional information you'd like to share..."></textarea>
+      </div>
+    </div>
+
+    <!-- Terms & Conditions -->
+    <div class="card">
+      <h2><i class="fa-solid fa-file-contract"></i> Terms & Conditions</h2>
+      <div class="terms-box">
+        <h4>Adoption Terms & Conditions</h4>
+        <p>By submitting this application, you agree to the following:</p>
+        <ul>
+          <li><strong>1. Truthful Information:</strong> All information provided must be accurate and complete. Providing false or misleading information is grounds for immediate disqualification and may be subject to legal action.</li>
+          <li><strong>2. Home Visit:</strong> You agree to allow an authorised officer from our organization to conduct a home visit to assess the living environment.</li>
+          <li><strong>3. Background Check:</strong> You consent to a background verification check as part of the adoption process.</li>
+          <li><strong>4. Child's Best Interest:</strong> The adopted child's welfare is paramount. Any form of abuse, neglect, or exploitation will result in immediate revocation of adoption and legal prosecution.</li>
+          <li><strong>5. Process Compliance:</strong> You agree to follow the full adoption process including interviews, documentation, and court proceedings as required by law.</li>
+          <li><strong>6. Confidentiality:</strong> Information about the child's background and family history must be kept confidential.</li>
+          <li><strong>7. No Abandonment:</strong> Abandoning the adoption process after approval without valid justification may result in disqualification from future applications.</li>
+          <li><strong>8. Legal Documents:</strong> You will be required to submit certified copies of ID, marriage certificate (if applicable), proof of income, and a medical certificate.</li>
+        </ul>
+      </div>
+
+      <div class="consequences">
+        <h4><i class="fa-solid fa-triangle-exclamation"></i> Consequences of Non-Compliance</h4>
+        <ul>
+          <li>Immediate disqualification from this and future adoption applications</li>
+          <li>Reporting to appropriate legal authorities for investigation</li>
+          <li>Criminal charges in cases of child abuse or exploitation</li>
+          <li>Permanent blacklisting from the orphanage's adoption program</li>
+          <li>Civil liability for damages caused to the child's welfare</li>
+        </ul>
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="agreed_to_terms" name="agreed_to_terms" value="1" required/>
+        <label for="agreed_to_terms">
+          I have read, understood, and agree to all the Terms & Conditions above. I understand the consequences of non-compliance and confirm that all information I have provided is true and accurate.
+        </label>
+      </div>
+
+      <button type="submit" class="btn-submit">
+        <i class="fa-solid fa-paper-plane"></i> Submit Adoption Application
+      </button>
+    </div>
+
+  </form>
+</div>
+</body>
+</html>

@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="/css/style.css" />
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Paystack Inline JS -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
   <style>
     /* Modal layout styles on top of style.css */
     .modal-overlay {
@@ -126,7 +128,7 @@
         <li class="desktop-only"><a href="#contact">Contact</a></li>
         <li><a href="#" onclick="openDonationModal(); return false;" class="btn btn-donate shimmer-btn">Donate <i class="fa-solid fa-heart ml-1"></i></a></li>
         <li><a href="/public/child-report" class="btn btn-outline btn-small">Report / Register a Child</a></li>
-        <li><a href="/admission" class="btn btn-outline btn-small">Apply for Adoption</a></li>
+        <li><a href="/apply-adoption" class="btn btn-outline btn-small">Apply for Adoption</a></li>
         <li><a href="/login" class="btn btn-outline btn-small">Login</a></li>
       </ul>
     </nav>
@@ -144,7 +146,7 @@
           </p>
 
           <div class="hero-buttons">
-            <a href="/admission" class="btn btn-primary shimmer-btn">Apply for Adoption</a>
+            <a href="/apply-adoption" class="btn btn-primary shimmer-btn">Apply for Adoption</a>
             <a href="/public/child-report" class="btn btn-primary shimmer-btn">Report / Register a Child</a>
             <a href="#" onclick="openDonationModal(); return false;" class="btn btn-donate shimmer-btn">Donate Now <i class="fa-solid fa-heart ml-1"></i></a>
             <a href="/login" class="btn btn-outline" style="background: rgba(0,0,0,0.3); border-color: var(--glassborder); color: #fff;">Login</a>
@@ -254,111 +256,76 @@
   <div class="modal-overlay" id="donationModal" onclick="closeModalOutside(event)">
       <div class="modal-content">
           <button class="modal-close" onclick="closeDonationModal()"><i class="fa-solid fa-xmark"></i></button>
-          
-          <h2 style="color: white; font-size: 24px; margin-bottom: 24px;">Make a Donation</h2>
-          <form action="/donate" method="POST" enctype="multipart/form-data">
+
+          <h2 style="color: white; font-size: 24px; margin-bottom: 24px;"><i class="fa-solid fa-heart" style="color:#ef4444;margin-right:8px;"></i>Make a Donation</h2>
+          <form action="/donate" method="POST" enctype="multipart/form-data" id="donationForm">
+              <!-- Hidden field for Paystack reference -->
+              <input type="hidden" name="paystack_reference" id="paystack_reference" value="">
+              <input type="hidden" name="currency" value="NGN">
+
               <div class="type-toggle">
                   <input type="radio" id="type-cash" name="donation_type" value="Cash" checked onchange="toggleFields()">
-                  <label for="type-cash">Monetary</label>
-                  
+                  <label for="type-cash"><i class="fa-solid fa-money-bill-wave" style="margin-right:4px;"></i>Monetary</label>
+
                   <input type="radio" id="type-items" name="donation_type" value="Items" onchange="toggleFields()">
-                  <label for="type-items">Physical Items</label>
+                  <label for="type-items"><i class="fa-solid fa-box-open" style="margin-right:4px;"></i>Physical Items</label>
               </div>
 
               <div class="form-row">
                   <div class="form-group">
-                      <label>Full Name</label>
-                      <input type="text" name="donor_name" required placeholder="John Doe">
+                      <label>Full Name <span style="color:#f87171">*</span></label>
+                      <input type="text" name="donor_name" id="donor_name" required placeholder="John Doe">
                   </div>
                   <div class="form-group">
-                      <label>Email Address</label>
-                      <input type="email" name="donor_email" required placeholder="john@example.com">
+                      <label>Email Address <span style="color:#f87171">*</span></label>
+                      <input type="email" name="donor_email" id="donor_email" required placeholder="john@example.com">
                   </div>
               </div>
 
-              <!-- Cash Fields -->
+              <!-- Cash / Paystack Fields -->
               <div id="cash-fields">
-                  <div class="form-row">
-                      <div class="form-group">
-                          <label>Currency</label>
-                          <select name="currency" id="currency">
-                              <option value="$">USD ($)</option>
-                              <option value="₦">NGN (₦)</option>
-                              <option value="€">EUR (€)</option>
-                              <option value="£">GBP (£)</option>
-                          </select>
-                      </div>
-                      <div class="form-group">
-                          <label>Amount</label>
-                          <input type="number" name="amount" id="amount" step="0.01" min="1" placeholder="0.00">
-                      </div>
-                  </div>
                   <div class="form-group">
-                      <label>Payment Method</label>
-                      <select name="payment_method" id="payment_method" onchange="togglePaymentDetails()">
-                          <option value="" disabled selected>Select Payment Method</option>
-                          <option value="Credit Card">Credit Card</option>
-                          <option value="Bank Transfer">Bank Transfer</option>
-                      </select>
-                  </div>
-              </div>
-
-              <!-- Payment Details Fields -->
-              <div id="credit-card-fields" style="display: none; margin-top: 1rem; margin-bottom: 1.5rem; padding: 1.5rem; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(236, 72, 153, 0.3); box-shadow: inset 0 0 20px rgba(236, 72, 153, 0.05);">
-                  <h4 style="margin-top: 0; color: #f472b6; margin-bottom: 1rem;"><i class="fa-regular fa-credit-card"></i> Credit Card Details</h4>
-                  
-                  <div class="form-group">
-                      <label>Card Number</label>
-                      <input type="text" id="card_number" name="card_number" placeholder="0000 0000 0000 0000" maxlength="19" style="letter-spacing: 2px; font-size: 16px; font-family: monospace; border-color: rgba(99,102,241,0.4); background: rgba(0,0,0,0.4);">
+                      <label>Amount (₦ NGN) <span style="color:#f87171">*</span></label>
+                      <input type="number" name="amount" id="amount" step="1" min="100" placeholder="e.g. 5000" required>
+                      <small style="color:#64748b;font-size:12px;margin-top:4px;display:block;">Minimum: ₦100. Payment is secured by Paystack.</small>
                   </div>
 
-                  <!-- Card Name moved BELOW Card Number as requested -->
-                  <div class="form-group">
-                      <label>Cardholder Name</label>
-                      <input type="text" name="card_name" placeholder="Name on card" style="text-transform: uppercase; border-color: rgba(99,102,241,0.4); background: rgba(0,0,0,0.4);">
+                  <!-- Paystack Pay Button -->
+                  <button type="button" id="pay-with-paystack-btn" onclick="initiatePaystack()"
+                    style="width:100%;padding:14px;background:#0ba4db;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background 0.2s;">
+                    <img src="https://checkout.paystack.com/assets/img/logos/paystack-logo-white.svg" alt="Paystack" style="height:22px;"> Pay Securely with Paystack
+                  </button>
+
+                  <!-- Paystack success info (shown after payment) -->
+                  <div id="paystack-success-info" style="display:none;padding:12px 16px;background:#064e3b;border:1px solid #059669;border-radius:8px;color:#6ee7b7;font-size:13px;margin-bottom:12px;">
+                    <i class="fa-solid fa-circle-check"></i> Payment verified! Click <strong>Complete Donation</strong> below to save your record.
                   </div>
 
-                  <div class="form-row">
-                      <div class="form-group">
-                          <label>Expiry (MM/YY)</label>
-                          <input type="text" name="card_expiry" placeholder="12/26" maxlength="5" style="border-color: rgba(99,102,241,0.4); background: rgba(0,0,0,0.4);">
-                      </div>
-                      <div class="form-group">
-                          <label>CVV</label>
-                          <input type="password" name="card_cvv" placeholder="123" maxlength="3" style="border-color: rgba(99,102,241,0.4); background: rgba(0,0,0,0.4);">
-                      </div>
-                  </div>
-              </div>
-
-              <div id="bank-transfer-fields" style="display: none; margin-top: 1rem; margin-bottom: 1.5rem; text-align: center; padding: 1.5rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--glassborder);">
-                  <h4 style="margin-top: 0; color: #fff;"><i class="fa-solid fa-building-columns"></i> Bank Transfer Instructions</h4>
-                  <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Please transfer the exact amount to the following account:</p>
-                  <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: inline-block;">
-                      <div style="font-size: 0.9rem; color: var(--text-muted);">HOPE ORPHANAGE TRUST</div>
-                      <div style="font-size: 1.5rem; letter-spacing: 2px; font-weight: bold; margin: 0.5rem 0; color: #fff;">0123456789</div>
-                      <div style="font-size: 0.9rem; color: var(--text-muted);">Global Bank Plc</div>
-                  </div>
-                  <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                      <input type="checkbox" id="transfer_confirmed" name="transfer_confirmed" style="width: auto; margin:0; padding:0;">
-                      <label for="transfer_confirmed" style="margin: 0; color: #fff; cursor: pointer;">I confirm I have made this transfer</label>
-                  </div>
+                  <!-- Fallback submit for after paystack -->
+                  <button type="submit" id="complete-donation-btn" style="display:none;width:100%;padding:14px;background:#4f46e5;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;">
+                    <i class="fa-solid fa-paper-plane"></i> Complete Donation
+                  </button>
               </div>
 
               <!-- Item Fields -->
               <div id="item-fields" class="form-group" style="display: none;">
-                  <label>Item Description / Quantity</label>
+                  <label>Item Description / Quantity <span style="color:#f87171">*</span></label>
                   <textarea name="item_description" id="item_description" rows="3" placeholder="E.g., 20 boxes of clothes, 5 crates of milk..."></textarea>
-                  <label style="margin-top: 12px;">Item Image</label>
+                  <label style="margin-top: 12px;">Item Image (Optional)</label>
                   <input type="file" name="item_image" accept="image/*" capture="environment">
+                  <button type="submit" class="submit-btn" style="width:100%;margin-top:16px;">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Item Donation
+                  </button>
               </div>
-
-              <button type="submit" class="submit-btn" style="width: 100%;">Complete Donation</button>
           </form>
       </div>
   </div>
 
   <script>
-      // Modal logic
+      // ── Paystack Key (injected server-side) ──
+      var PAYSTACK_KEY = '<%= paystackKey %>';
+
+      // ── Modal logic ──
       function openDonationModal() {
           document.getElementById('donationModal').classList.add('active');
           document.body.style.overflow = 'hidden';
@@ -375,126 +342,82 @@
           }
       }
 
-      // Form Fields Logic
+      // ── Toggle Cash / Items ──
       function toggleFields() {
           const isCash = document.getElementById('type-cash').checked;
-          const cashFields = document.getElementById('cash-fields');
-          const itemFields = document.getElementById('item-fields');
-          
-          const currency = document.getElementById('currency');
+          document.getElementById('cash-fields').style.display = isCash ? 'block' : 'none';
+          document.getElementById('item-fields').style.display = isCash ? 'none' : 'block';
           const amount = document.getElementById('amount');
-          const paymentMethod = document.getElementById('payment_method');
           const desc = document.getElementById('item_description');
-
           if (isCash) {
-              cashFields.style.display = 'block';
-              itemFields.style.display = 'none';
-              
-              currency.setAttribute('required', 'true');
               amount.setAttribute('required', 'true');
-              paymentMethod.setAttribute('required', 'true');
               desc.removeAttribute('required');
-              desc.value = '';
-              togglePaymentDetails();
           } else {
-              cashFields.style.display = 'none';
-              itemFields.style.display = 'block';
-
-              desc.setAttribute('required', 'true');
-              currency.removeAttribute('required');
               amount.removeAttribute('required');
-              paymentMethod.removeAttribute('required');
-              currency.value = '';
-              amount.value = '';
-              paymentMethod.value = '';
-              togglePaymentDetails();
+              desc.setAttribute('required', 'true');
+              // Reset paystack state when switching to items
+              document.getElementById('paystack_reference').value = '';
+              document.getElementById('paystack-success-info').style.display = 'none';
+              document.getElementById('pay-with-paystack-btn').style.display = 'flex';
+              document.getElementById('complete-donation-btn').style.display = 'none';
           }
       }
 
-      function togglePaymentDetails() {
-          const method = document.getElementById('payment_method').value;
-          const cardFields = document.getElementById('credit-card-fields');
-          const bankFields = document.getElementById('bank-transfer-fields');
-          const isCash = document.getElementById('type-cash').checked;
-          
-          const cardName = document.querySelector('[name="card_name"]');
-          const cardNum = document.querySelector('[name="card_number"]');
-          const cardExp = document.querySelector('[name="card_expiry"]');
-          const cardCvv = document.querySelector('[name="card_cvv"]');
-          const transferConfirmed = document.getElementById('transfer_confirmed');
-
-          if (!isCash) {
-              cardFields.style.display = 'none';
-              bankFields.style.display = 'none';
-              cardName.removeAttribute('required');
-              cardNum.removeAttribute('required');
-              cardExp.removeAttribute('required');
-              cardCvv.removeAttribute('required');
-              transferConfirmed.removeAttribute('required');
+      // ── Initiate Paystack payment ──
+      function initiatePaystack() {
+          if (!PAYSTACK_KEY) {
+              alert('Online payment is not configured yet. Please contact us directly.');
               return;
           }
+          const name = document.getElementById('donor_name').value.trim();
+          const email = document.getElementById('donor_email').value.trim();
+          const amountVal = parseFloat(document.getElementById('amount').value);
 
-          if (method === 'Credit Card') {
-              cardFields.style.display = 'block';
-              bankFields.style.display = 'none';
-              
-              cardName.setAttribute('required', 'true');
-              cardNum.setAttribute('required', 'true');
-              cardExp.setAttribute('required', 'true');
-              cardCvv.setAttribute('required', 'true');
-              transferConfirmed.removeAttribute('required');
-          } else if (method === 'Bank Transfer') {
-              cardFields.style.display = 'none';
-              bankFields.style.display = 'block';
-              
-              cardName.removeAttribute('required');
-              cardNum.removeAttribute('required');
-              cardExp.removeAttribute('required');
-              cardCvv.removeAttribute('required');
-              transferConfirmed.setAttribute('required', 'true');
-          } else {
-              cardFields.style.display = 'none';
-              bankFields.style.display = 'none';
-              
-              cardName.removeAttribute('required');
-              cardNum.removeAttribute('required');
-              cardExp.removeAttribute('required');
-              cardCvv.removeAttribute('required');
-              transferConfirmed.removeAttribute('required');
-          }
+          if (!name) { alert('Please enter your full name.'); return; }
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Please enter a valid email address.'); return; }
+          if (!amountVal || amountVal < 100) { alert('Please enter an amount of at least ₦100.'); return; }
+
+          var handler = PaystackPop.setup({
+              key: PAYSTACK_KEY,
+              email: email,
+              amount: Math.round(amountVal * 100), // Paystack expects kobo
+              currency: 'NGN',
+              ref: 'OMS-' + Date.now() + '-' + Math.floor(Math.random() * 1e6),
+              metadata: { donor_name: name },
+              callback: function(response) {
+                  // Payment successful — store reference and show submit button
+                  document.getElementById('paystack_reference').value = response.reference;
+                  document.getElementById('paystack-success-info').style.display = 'block';
+                  document.getElementById('pay-with-paystack-btn').style.display = 'none';
+                  document.getElementById('complete-donation-btn').style.display = 'block';
+              },
+              onClose: function() {
+                  // User closed Paystack popup without paying — do nothing
+              }
+          });
+          handler.openIframe();
       }
-      
-      // Card formatting with spacing
-      document.getElementById('card_number').addEventListener('input', function (e) {
-          let target = e.target;
-          let val = target.value.replace(/\D/g, '').substring(0, 16);
-          let parts = val.match(/.{1,4}/g);
-          target.value = parts ? parts.join(' ') : '';
-      });
 
-      // Error handling via server render variables
+      // ── Server-side messages ──
       <% if (typeof error !== 'undefined' && error) { %>
           Swal.fire({
               icon: 'error',
               title: 'Submission Error',
-              text: '<%= error %>',
+              text: '<%- error %>',
               background: '#1E293B',
               color: '#fff',
               confirmButtonColor: '#EF4444'
-          }).then(() => {
-              openDonationModal();
-          });
+          }).then(() => { openDonationModal(); });
       <% } %>
 
-      // Success handling
       <% if (typeof success !== 'undefined' && success) { %>
           Swal.fire({
               icon: 'success',
               title: 'Thank You!',
-              text: 'Your generous donation has been successfully recorded.',
+              text: 'Your generous donation has been successfully recorded. A confirmation email has been sent to you.',
               background: '#1E293B',
               color: '#fff',
-              confirmButtonColor: '#EF4444'
+              confirmButtonColor: '#10b981'
           });
       <% } %>
 

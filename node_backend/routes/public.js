@@ -9,7 +9,11 @@ router.get('/', publicController.showLanding);
 // Handle the donation submission from non-admins
 router.post('/donate', uploadDonationItemPhoto, publicController.submitDonation);
 
-// Show the React donation checkout page
+// React donation checkout page
 router.get('/checkout', publicController.showCheckout);
+
+// Public adoption application form
+router.get('/apply-adoption', publicController.showAdoptionForm);
+router.post('/apply-adoption', publicController.submitAdoptionApplication);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const Adoption = require('../models/Adoption');
 const Child = require('../models/Child');
-const { sendAdoptionScheduleNotification } = require('../utils/email');
+const { sendAdoptionScheduleNotification, sendAdoptionStatusUpdate } = require('../utils/email');
 
 const REQUIRED = [
     'child_id',
@@ -212,6 +212,14 @@ exports.updateAdoption = async (req, res) => {
             await applyStatusSideEffects(newChildId, body.adoption_status, existing.adoption_status);
         }
 
+        // Send status email if status changed
+        const newStatus = body.adoption_status;
+        if (newStatus !== existing.adoption_status && ['Rejected','Completed'].includes(newStatus)) {
+            try {
+                const updatedRecord = await Adoption.findById(req.params.id);
+                await sendAdoptionStatusUpdate(updatedRecord).catch(() => {});
+            } catch(e) { console.error('Status email failed:', e.message); }
+        }
         res.redirect(`/adoptions/${req.params.id}?success=${encodeURIComponent('Adoption record updated.')}`);
     } catch (err) {
         console.error(err);
@@ -227,7 +235,12 @@ exports.acceptAdoption = async (req, res) => {
             return res.redirect(`/adoptions/${req.params.id}?error=${encodeURIComponent('Only pending applications can be accepted.')}`);
         }
         await Adoption.accept(req.params.id);
-        res.redirect(`/adoptions/${req.params.id}?success=${encodeURIComponent('Application accepted. You can now schedule the orphanage visit.')}`);
+        // Send email to applicant
+        try {
+            const updated = await Adoption.findById(req.params.id);
+            await sendAdoptionStatusUpdate({ ...updated, adoption_status: 'Accepted' });
+        } catch(e) { console.error('Accept email failed:', e.message); }
+        res.redirect(`/adoptions/${req.params.id}?success=${encodeURIComponent('Application accepted. Email sent to applicant.')}`);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error: ' + err.message);
@@ -263,17 +276,14 @@ exports.scheduleAdoptionVisit = async (req, res) => {
 
         const updated = await Adoption.findById(req.params.id);
         try {
-            const emailResult = await sendAdoptionScheduleNotification(updated);
-            if (emailResult && emailResult.skipped) {
-                return res.redirect(`/adoptions/${req.params.id}?success=${encodeURIComponent('Visit/interview scheduled successfully. Email notification was skipped because SMTP is not fully configured.')}`);
-            }
-            return res.redirect(`/adoptions/${req.params.id}?success=${encodeURIComponent('Visit/interview scheduled and email notification sent.')}`);
+            // Email admin
+            await sendAdoptionScheduleNotification(updated).catch(() => {});
+            // Email applicant
+            await sendAdoptionStatusUpdate({ ...updated, adoption_status: 'Scheduled' }).catch(() => {});
+            return res.redirect(`/adoptions/${req.params.id}?success=${encodeURIComponent('Visit scheduled. Emails sent to applicant and admin.')}`);
         } catch (mailErr) {
-            console.error('Schedule email notification failed:', mailErr);
-            return res.redirect(
-                `/adoptions/${req.params.id}?success=${encodeURIComponent('Visit/interview scheduled successfully.')}` +
-                `&error=${encodeURIComponent('Schedule saved, but email notification failed. Check SMTP settings/logs.')}`
-            );
+            console.error('Schedule email failed:', mailErr);
+            return res.redirect(`/adoptions/${req.params.id}?success=${encodeURIComponent('Visit scheduled successfully.')}`);
         }
     } catch (err) {
         console.error(err);

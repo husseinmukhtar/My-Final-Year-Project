@@ -244,6 +244,20 @@ class Adoption {
         const requestedVisit = String(visitDateTime || '').slice(0, 16);
         return latest.adoption_status === 'Scheduled' && savedVisit === requestedVisit;
     }
+
+    // For public adoption application submissions
+    static async createPublic(data) {
+        const cols = [
+            'child_id','adopter_full_name','adopter_gender','adopter_dob','adopter_phone',
+            'adopter_nationality','adopter_email','adopter_address','occupation','marital_status',
+            'number_of_children','income_level','house_type','identification_type','identification_number',
+            'adoption_status','application_date','applicant_location','agreed_to_terms','notes'
+        ];
+        const values = cols.map(c => data[c] !== undefined ? data[c] : null);
+        const placeholders = cols.map(() => '?').join(', ');
+        const [result] = await db.query(`INSERT INTO adoptions (${cols.join(', ')}) VALUES (${placeholders})`, values);
+        return result.insertId;
+    }
 }
 
 module.exports = Adoption;

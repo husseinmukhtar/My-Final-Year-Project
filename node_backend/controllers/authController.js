@@ -58,9 +58,7 @@ exports.login = async (req, res) => {
 
 exports.logout = (req, res) => {
     req.session.destroy(err => {
-        if (err) {
-            console.error('Logout err:', err);
-        }
-        res.redirect('/login');
+        if (err) console.error('Logout err:', err);
+        res.redirect('/');
     });
 };
