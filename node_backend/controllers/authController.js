@@ -67,11 +67,18 @@ exports.login = async (req, res) => {
 
         console.log('[AUTH] Login successful for:', email, 'Role:', user.role);
 
-        if (user.role === 'admin') {
-            return res.redirect('/admin-dashboard');
-        } else {
-            return res.redirect('/staff-dashboard');
-        }
+        req.session.save((err) => {
+            if (err) {
+                console.error('[AUTH] Session save error:', err);
+                req.flash('error', 'Session error. Please try again.');
+                return res.redirect('/login');
+            }
+            if (user.role === 'admin') {
+                return res.redirect('/admin-dashboard');
+            } else {
+                return res.redirect('/staff-dashboard');
+            }
+        });
     } catch (err) {
         console.error('[auth] Login error:', err);
         return res.render('auth/login', { error: 'An internal server error occurred.' });
