@@ -6,8 +6,10 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
+    "migrate:users": "node migrate_users_password_column.js",
     "migrate:children": "node migrate_children_schema.js",
     "migrate:adoptions": "node migrate_adoptions_table.js",
+    "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js"
   },
   "dependencies": {
