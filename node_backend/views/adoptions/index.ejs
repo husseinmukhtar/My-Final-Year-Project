@@ -28,6 +28,7 @@
     </div>
 </form>
 
+<% if (locals.user && locals.user.role === 'admin') { %>
 <div style="margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
     <div></div> <!-- Empty div to keep flex space-between alignment for export buttons -->
     <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-left: auto;">
@@ -35,6 +36,7 @@
         <a href="/reports/export/adoptions-print" target="_blank" rel="noopener" class="btn btn-secondary"><i class="fa-solid fa-file-pdf"></i> Print / Save PDF</a>
     </div>
 </div>
+<% } %>
 
 <div class="table-wrapper">
     <table class="custom-table">
@@ -60,11 +62,13 @@
                         <td>
                             <div class="actions-cell">
                                 <a href="/adoptions/<%= row.id %>" class="btn btn-secondary" style="padding: 6px 12px;"><i class="fa-solid fa-eye"></i> View</a>
-                                <a href="/adoptions/<%= row.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;"><i class="fa-solid fa-pen"></i> Edit</a>
-                                <form action="/adoptions/<%= row.id %>?_method=DELETE" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px;"><i class="fa-solid fa-trash"></i> Delete</button>
-                                </form>
+                                <% if (locals.user && locals.user.role === 'admin') { %>
+                                    <a href="/adoptions/<%= row.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;"><i class="fa-solid fa-pen"></i> Edit</a>
+                                    <form action="/adoptions/<%= row.id %>?_method=DELETE" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" class="btn btn-danger" style="padding: 6px 12px;"><i class="fa-solid fa-trash"></i> Delete</button>
+                                    </form>
+                                <% } %>
                             </div>
                         </td>
                     </tr>

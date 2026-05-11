@@ -102,6 +102,23 @@ class Adoption {
         return { ...row, child_display_name: childDisplayName(row) };
     }
 
+    static async findByAssignedStaff(staffName) {
+        const sql = `
+            SELECT a.*,
+                   c.first_name AS child_first_name,
+                   c.middle_name AS child_middle_name,
+                   c.last_name AS child_last_name,
+                   c.name AS child_name,
+                   c.child_public_id AS child_public_id
+            FROM adoptions a
+            INNER JOIN children c ON c.id = a.child_id
+            WHERE a.assigned_staff = ? AND a.adoption_status = 'Scheduled'
+            ORDER BY a.visit_scheduled_at ASC
+        `;
+        const [rows] = await db.query(sql, [staffName]);
+        return rows.map((r) => ({ ...r, child_display_name: childDisplayName(r) }));
+    }
+
     static async countCompletedForChild(childId, excludeAdoptionId = null) {
         let sql = `SELECT COUNT(*) AS n FROM adoptions WHERE child_id = ? AND adoption_status = 'Completed'`;
         const params = [childId];

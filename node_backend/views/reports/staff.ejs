@@ -1,0 +1,38 @@
+<%- include('../partials/header', { pageTitle: 'System Reports', activePage: 'reports' }) %>
+
+<div class="page-title" style="margin-bottom: 8px;">
+    System Statistics Overview
+</div>
+<div style="margin-bottom: 30px;">
+    <p style="color: var(--text-muted); margin: 0;">Overview of core records in the orphanage management system.</p>
+</div>
+
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+    
+    <div class="stat-card">
+        <div class="stat-icon primary"><i class="fa-solid fa-child-reaching"></i></div>
+        <div class="stat-info">
+            <h3>Total Children</h3>
+            <p><%= stats.childrenCount %></p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background-color: rgba(234, 179, 8, 0.15); color: #facc15;"><i class="fa-solid fa-hand-holding-heart"></i></div>
+        <div class="stat-info">
+            <h3>Total Donations</h3>
+            <p><%= stats.donationsCount %></p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success" style="background-color: rgba(16, 185, 129, 0.15); color: #34d399;"><i class="fa-solid fa-file-signature"></i></div>
+        <div class="stat-info">
+            <h3>Total Adoptions</h3>
+            <p><%= stats.adoptionCount %></p>
+        </div>
+    </div>
+
+</div>
+
+<%- include('../partials/footer') %>

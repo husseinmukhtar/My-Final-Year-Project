@@ -145,6 +145,11 @@ exports.new = async (req, res) => {
 
 exports.saveDraft = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can save child drafts.');
+            return res.redirect('/children');
+        }
+
         if (req.fileUploadError) {
             const latestDraft = await Child.findLatestDraftForUser(req.session.userId);
             return renderNew(req, res, {
@@ -201,6 +206,11 @@ exports.saveDraft = async (req, res) => {
 
 exports.create = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can register children.');
+            return res.redirect('/children');
+        }
+
         if (req.fileUploadError) {
             const latestDraft = await Child.findLatestDraftForUser(req.session.userId);
             return renderNew(req, res, {
@@ -286,6 +296,11 @@ exports.edit = async (req, res) => {
 
 exports.update = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can edit child records.');
+            return res.redirect('/children');
+        }
+
         if (req.fileUploadError) {
             const child = await Child.findById(req.params.id);
             if (!child) return res.redirect('/children?error=Child Not Found');
@@ -330,6 +345,11 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can delete records.');
+            return res.redirect('/children');
+        }
+
         await Child.delete(req.params.id);
         res.redirect('/children?success=Child record permanently deleted.');
     } catch (err) {

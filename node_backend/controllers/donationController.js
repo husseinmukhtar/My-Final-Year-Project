@@ -98,6 +98,11 @@ exports.edit = async (req, res) => {
 
 exports.update = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Admin only.');
+            return res.redirect('/donations');
+        }
+
         let {
             donor_name, donor_email, phone, donation_type, currency, payment_method, amount,
             item_description, item_name, quantity, item_condition, donation_date
@@ -159,6 +164,11 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Admin only.');
+            return res.redirect('/donations');
+        }
+
         await Donation.delete(req.params.id);
         res.redirect('/donations?success=Donation record permanently deleted.');
     } catch (err) {

@@ -124,7 +124,12 @@ async function applyStatusSideEffects(childId, adoptionStatus, prevStatus) {
 exports.getAllAdoptions = async (req, res) => {
     try {
         const { search, status, success, error } = req.query;
-        const adoptions = await Adoption.findAll(search || '', status || '');
+        let adoptions;
+        if (req.session.role === 'admin') {
+            adoptions = await Adoption.findAll(search || '', status || '');
+        } else {
+            adoptions = await Adoption.findByAssignedStaff(req.session.fullName);
+        }
         res.render('adoptions/index', {
             adoptions: adoptions || [],
             search: search || '',
@@ -141,6 +146,7 @@ exports.getAllAdoptions = async (req, res) => {
 // Admin endpoints for updating and deleting adoptions (removed create logic per requirements)
 exports.getAdoptionById = async (req, res) => {
     try {
+        // Staff access is allowed but they only see limited details in the view
         const adoption = await Adoption.findById(req.params.id);
         if (!adoption) return res.redirect('/adoptions?error=Record not found');
         const success = req.query.success ? String(req.query.success) : null;
@@ -154,6 +160,10 @@ exports.getAdoptionById = async (req, res) => {
 
 exports.getEditForm = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Admin only.');
+            return res.redirect('/adoptions');
+        }
         const adoption = await Adoption.findById(req.params.id);
         if (!adoption) return res.redirect('/adoptions?error=Record not found');
         const children = await Child.findSelectableForAdoption(req.params.id);
@@ -166,6 +176,10 @@ exports.getEditForm = async (req, res) => {
 
 exports.updateAdoption = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Admin only.');
+            return res.redirect('/adoptions');
+        }
         const existing = await Adoption.findById(req.params.id);
         if (!existing) return res.redirect('/adoptions?error=Record not found');
 
@@ -229,6 +243,10 @@ exports.updateAdoption = async (req, res) => {
 
 exports.acceptAdoption = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can approve adoptions.');
+            return res.redirect('/adoptions');
+        }
         const existing = await Adoption.findById(req.params.id);
         if (!existing) return res.redirect('/adoptions?error=Record not found');
         if (existing.adoption_status !== 'Pending') {
@@ -249,6 +267,10 @@ exports.acceptAdoption = async (req, res) => {
 
 exports.scheduleAdoptionVisit = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can schedule visits.');
+            return res.redirect('/adoptions');
+        }
         const existing = await Adoption.findById(req.params.id);
         if (!existing) return res.redirect('/adoptions?error=Record not found');
         if (!['Accepted', 'Scheduled', 'Approved'].includes(existing.adoption_status)) {
@@ -293,6 +315,10 @@ exports.scheduleAdoptionVisit = async (req, res) => {
 
 exports.deleteAdoption = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Admin only.');
+            return res.redirect('/adoptions');
+        }
         const existing = await Adoption.findById(req.params.id);
         if (!existing) return res.redirect('/adoptions?error=Record not found');
 
@@ -304,6 +330,36 @@ exports.deleteAdoption = async (req, res) => {
             }
         }
         res.redirect('/adoptions?success=' + encodeURIComponent('Adoption record deleted.'));
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error: ' + err.message);
+    }
+};
+
+exports.completeVisit = async (req, res) => {
+    try {
+        const id = req.params.id;
+        if (req.session.role === 'admin') {
+            req.flash('error', 'Visit completion should be recorded by the assigned staff member.');
+            return res.redirect('/adoptions/' + id);
+        }
+        const adoption = await Adoption.findById(id);
+        if (!adoption) return res.redirect('/adoptions?error=Record not found');
+        if (adoption.assigned_staff !== req.session.fullName) {
+            req.flash('error', 'Access denied. You can only complete visits assigned to you.');
+            return res.redirect('/adoptions');
+        }
+        if (adoption.adoption_status !== 'Scheduled') {
+            req.flash('error', 'Only Scheduled visits can be marked as Completed.');
+            return res.redirect('/adoptions/' + id);
+        }
+
+        const body = { ...adoption, adoption_status: 'Completed', visit_notes: req.body.notes };
+        if (!body.approval_date) body.approval_date = new Date().toISOString().slice(0, 10);
+        await Adoption.update(id, body);
+        await applyStatusSideEffects(adoption.child_id, 'Completed', adoption.adoption_status);
+
+        res.redirect(`/adoptions/${id}?success=Visit marked as completed.`);
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error: ' + err.message);

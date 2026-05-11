@@ -10,5 +10,6 @@ router.put('/:id/schedule', adoptionController.scheduleAdoptionVisit);
 router.get('/:id/edit', adoptionController.getEditForm);
 router.put('/:id', adoptionController.updateAdoption);
 router.delete('/:id', adoptionController.deleteAdoption);
+router.post('/:id/complete', adoptionController.completeVisit);
 
 module.exports = router;

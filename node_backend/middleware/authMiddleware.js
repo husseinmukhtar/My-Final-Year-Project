@@ -11,8 +11,9 @@ module.exports = {
             return res.redirect('/login');
         }
         if (req.session.role !== 'admin') {
-            req.flash('error', 'Access denied. Administrator privileges required.');
-            return res.status(403).send('403 Forbidden');
+            return res.status(403).render('403', { 
+                user: { full_name: req.session.fullName, role: req.session.role } 
+            });
         }
         return next();
     }

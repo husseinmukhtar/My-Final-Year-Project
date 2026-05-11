@@ -11,6 +11,7 @@
     <div class="alert alert-error" style="margin-bottom: 16px;"><%= error %></div>
 <% } %>
 
+<% if (locals.user && locals.user.role === 'admin') { %>
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;">
     <a href="/adoptions" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back to list</a>
     <a href="/adoptions/<%= a.id %>/edit" class="btn btn-warning"><i class="fa-solid fa-pen"></i> Edit</a>
@@ -24,6 +25,11 @@
     </form>
     <% } %>
 </div>
+<% } else { %>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;">
+    <a href="/adoptions" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back to list</a>
+</div>
+<% } %>
 
 <div class="card" style="margin-bottom: 20px;">
     <h2 style="font-size: 18px; margin-bottom: 16px; color: var(--text-main);">Status</h2>
@@ -52,6 +58,7 @@
     </div>
 </div>
 
+<% if (locals.user && locals.user.role === 'admin') { %>
 <% if (a.adoption_status === 'Accepted' || a.adoption_status === 'Scheduled') { %>
 <div class="card" style="margin-bottom: 20px;">
     <h2 style="font-size: 18px; margin-bottom: 16px;">Schedule orphanage visit/interview</h2>
@@ -75,6 +82,20 @@
     </form>
 </div>
 <% } %>
+<% } else { %>
+    <% if (a.assigned_staff === locals.user.full_name && a.adoption_status === 'Scheduled') { %>
+        <div class="card" style="margin-bottom: 20px; border-left: 4px solid var(--primary);">
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Complete Assigned Visit</h2>
+            <form action="/adoptions/<%= a.id %>/complete" method="POST">
+                <div class="form-group">
+                    <label class="form-label">Field Visit Notes</label>
+                    <textarea name="notes" class="form-control" rows="4" placeholder="Enter your field visit notes..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Mark Visit as Completed</button>
+            </form>
+        </div>
+    <% } %>
+<% } %>
 
 <div class="card" style="margin-bottom: 20px;">
     <h2 style="font-size: 18px; margin-bottom: 16px;">Child</h2>
@@ -89,21 +110,28 @@
 
 <div class="card" style="margin-bottom: 20px;">
     <h2 style="font-size: 18px; margin-bottom: 16px;">Adopter</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; font-size: 14px;">
-        <div><span style="color: var(--text-muted);">Full name</span><br><strong><%= a.adopter_full_name %></strong></div>
-        <div><span style="color: var(--text-muted);">Gender / DOB</span><br><%= a.adopter_gender %> · <%= dstr(a.adopter_dob) %></div>
-        <div><span style="color: var(--text-muted);">Nationality / Country</span><br><%= a.adopter_nationality || '—' %></div>
-        <div><span style="color: var(--text-muted);">Phone</span><br><%= a.adopter_phone %></div>
-        <div><span style="color: var(--text-muted);">Email</span><br><%= a.adopter_email %></div>
-        <div style="grid-column: 1 / -1;"><span style="color: var(--text-muted);">Address</span><br><%= a.adopter_address %></div>
-        <div><span style="color: var(--text-muted);">Marital status</span><br><%= a.marital_status %></div>
-        <div><span style="color: var(--text-muted);">Children in household</span><br><%= a.number_of_children %></div>
-        <div><span style="color: var(--text-muted);">Occupation</span><br><%= a.occupation || '—' %></div>
-        <div><span style="color: var(--text-muted);">Income level</span><br><%= a.income_level || '—' %></div>
-        <div><span style="color: var(--text-muted);">House</span><br><%= a.house_type || '—' %></div>
-        <div><span style="color: var(--text-muted);">ID</span><br><%= a.identification_type %> — <%= a.identification_number %></div>
-        <div><span style="color: var(--text-muted);">Assigned staff</span><br><%= a.assigned_staff || '—' %></div>
-    </div>
+    <% if (locals.user && locals.user.role === 'admin') { %>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; font-size: 14px;">
+            <div><span style="color: var(--text-muted);">Full name</span><br><strong><%= a.adopter_full_name %></strong></div>
+            <div><span style="color: var(--text-muted);">Gender / DOB</span><br><%= a.adopter_gender %> · <%= dstr(a.adopter_dob) %></div>
+            <div><span style="color: var(--text-muted);">Nationality / Country</span><br><%= a.adopter_nationality || '—' %></div>
+            <div><span style="color: var(--text-muted);">Phone</span><br><%= a.adopter_phone %></div>
+            <div><span style="color: var(--text-muted);">Email</span><br><%= a.adopter_email %></div>
+            <div style="grid-column: 1 / -1;"><span style="color: var(--text-muted);">Address</span><br><%= a.adopter_address %></div>
+            <div><span style="color: var(--text-muted);">Marital status</span><br><%= a.marital_status %></div>
+            <div><span style="color: var(--text-muted);">Children in household</span><br><%= a.number_of_children %></div>
+            <div><span style="color: var(--text-muted);">Occupation</span><br><%= a.occupation || '—' %></div>
+            <div><span style="color: var(--text-muted);">Income level</span><br><%= a.income_level || '—' %></div>
+            <div><span style="color: var(--text-muted);">House</span><br><%= a.house_type || '—' %></div>
+            <div><span style="color: var(--text-muted);">ID</span><br><%= a.identification_type %> — <%= a.identification_number %></div>
+            <div><span style="color: var(--text-muted);">Assigned staff</span><br><%= a.assigned_staff || '—' %></div>
+        </div>
+    <% } else { %>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; font-size: 14px;">
+            <div><span style="color: var(--text-muted);">Full name</span><br><strong><%= a.adopter_full_name %></strong></div>
+            <div><span style="color: var(--text-muted);">Assigned staff</span><br><%= a.assigned_staff || '—' %></div>
+        </div>
+    <% } %>
 </div>
 
 <% if (a.notes) { %>

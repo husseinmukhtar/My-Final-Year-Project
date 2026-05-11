@@ -10,12 +10,18 @@ exports.index = async (req, res) => {
         
         const recentAdoptions = stats.recentRequests || [];
         
-        res.render('reports/index', { 
-            stats, 
-            recentAdoptions: recentAdoptions || [], 
-            monthlyDonations: monthlyDonations || [], 
-            childrenByStatus: childrenByStatus || [] 
-        });
+        if (req.session.role === 'admin') {
+            res.render('reports/index', { 
+                stats, 
+                recentAdoptions: recentAdoptions || [], 
+                monthlyDonations: monthlyDonations || [], 
+                childrenByStatus: childrenByStatus || [] 
+            });
+        } else {
+            res.render('reports/staff', { 
+                stats 
+            });
+        }
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error: ' + err.message);
@@ -40,6 +46,10 @@ function generateCSV(data) {
 
 exports.exportDonations = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can export reports.');
+            return res.redirect('/reports');
+        }
         const data = await Report.exportDonations();
         const csv = generateCSV(data || []);
         res.setHeader('Content-Type', 'text/csv');
@@ -53,6 +63,10 @@ exports.exportDonations = async (req, res) => {
 
 exports.exportChildren = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can export reports.');
+            return res.redirect('/reports');
+        }
         const data = await Report.exportChildren();
         const csv = generateCSV(data || []);
         res.setHeader('Content-Type', 'text/csv');
@@ -66,6 +80,10 @@ exports.exportChildren = async (req, res) => {
 
 exports.exportAdoptions = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can export reports.');
+            return res.redirect('/reports');
+        }
         const data = await Report.exportAdoptions();
         const csv = generateCSV(data || []);
         res.setHeader('Content-Type', 'text/csv');
@@ -80,6 +98,10 @@ exports.exportAdoptions = async (req, res) => {
 /** Browser “Save as PDF” / print-friendly HTML export */
 exports.exportAdoptionsPrint = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can export reports.');
+            return res.redirect('/reports');
+        }
         const rows = await Report.exportAdoptions();
         res.render('reports/adoptions_print', { rows: rows || [], printedAt: new Date() });
     } catch (err) {

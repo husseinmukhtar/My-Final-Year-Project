@@ -22,11 +22,13 @@
     </div>
 </form>
 
+<% if (locals.user && locals.user.role === 'admin') { %>
 <div style="margin-bottom: 24px;">
     <a href="/donations/new" class="btn btn-primary">
         <i class="fa-solid fa-hand-holding-dollar"></i> Add New Donation
     </a>
 </div>
+<% } %>
 
 <div class="table-wrapper">
     <table class="custom-table">
@@ -34,13 +36,19 @@
             <tr>
                 <th>ID</th>
                 <th>Donor Name</th>
-                <th>Donor Email</th>
+                <% if (locals.user && locals.user.role === 'admin') { %>
+                    <th>Donor Email</th>
+                <% } %>
                 <th>Type</th>
-                <th>Amount</th>
+                <% if (locals.user && locals.user.role === 'admin') { %>
+                    <th>Amount</th>
+                <% } %>
                 <th>Item Photo</th>
                 <th>Item Description</th>
                 <th>Donation Date</th>
-                <th>Actions</th>
+                <% if (locals.user && locals.user.role === 'admin') { %>
+                    <th>Actions</th>
+                <% } %>
             </tr>
         </thead>
         <tbody>
@@ -49,13 +57,17 @@
                     <tr>
                         <td><strong style="color: var(--text-muted);">#<%= donation.id %></strong></td>
                         <td style="font-weight: 500;"><%= donation.donor_name %></td>
-                        <td><%= donation.donor_email %></td>
+                        <% if (locals.user && locals.user.role === 'admin') { %>
+                            <td><%= donation.donor_email %></td>
+                        <% } %>
                         <td>
                             <span class="status-tag status-<%= donation.donation_type === 'Cash' ? 'Approved' : 'Pending' %>">
                                 <%= donation.donation_type %>
                             </span>
                         </td>
-                        <td><%= donation.donation_type === 'Cash' ? (donation.currency === 'NGN' ? '₦' : '$') + donation.amount : 'N/A' %></td>
+                        <% if (locals.user && locals.user.role === 'admin') { %>
+                            <td><%= donation.donation_type === 'Cash' ? (donation.currency === 'NGN' ? '₦' : '$') + donation.amount : 'N/A' %></td>
+                        <% } %>
                         <td>
                             <% if (donation.item_photo_path) { %>
                                 <img src="<%= donation.item_photo_path %>" alt="Item photo" style="width: 56px; height: 56px; object-fit: cover; border-radius: 8px;">
@@ -83,18 +95,20 @@
                             }
                         %>
                         <td><%= displayDate %></td>
-                        <td>
-                            <div class="actions-cell">
-                                <a href="/donations/<%= donation.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;">
-                                    <i class="fa-solid fa-pen"></i> Edit
-                                </a>
-                                <form action="/donations/<%= donation.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
-                                    <button type="submit" class="btn btn-danger" style="padding: 6px 12px;">
-                                        <i class="fa-solid fa-trash"></i> Delete
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
+                        <% if (locals.user && locals.user.role === 'admin') { %>
+                            <td>
+                                <div class="actions-cell">
+                                    <a href="/donations/<%= donation.id %>/edit" class="btn btn-warning" style="padding: 6px 12px;">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </a>
+                                    <form action="/donations/<%= donation.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirmDeletion(event);">
+                                        <button type="submit" class="btn btn-danger" style="padding: 6px 12px;">
+                                            <i class="fa-solid fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        <% } %>
                     </tr>
                 <% }) %>
             <% } else { %>
