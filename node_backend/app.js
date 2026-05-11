@@ -10,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 30001;
 
 // Trust Vercel proxy (required for secure cookies on HTTPS)
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 // MySQL Session Store
 const sessionStore = new MySQLStore({
@@ -33,6 +33,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
         maxAge: 1000 * 60 * 60 * 24 // 1 day
     }
 }));
