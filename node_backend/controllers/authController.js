@@ -31,16 +31,14 @@ exports.login = async (req, res) => {
 
         if (!user) {
             console.log('[AUTH] Login failed: no user found for email:', email);
-            req.flash('error', 'Invalid email or password.');
-            return res.redirect('/login');
+            return res.render('auth/login', { error: 'Invalid email or password.' });
         }
 
         // Check for truncated hash
         if (!user.password || user.password.length < 50) {
             console.log('[AUTH] WARNING: Truncated or missing hash for user:', email, 
                         'Hash length:', user.password ? user.password.length : 0);
-            req.flash('error', 'Invalid email or password.');
-            return res.redirect('/login');
+            return res.render('auth/login', { error: 'Invalid email or password.' });
         }
 
         // Log hash check before comparison
@@ -56,8 +54,7 @@ exports.login = async (req, res) => {
 
         if (!isMatch) {
             console.log('[AUTH] bcrypt.compare failed for:', email);
-            req.flash('error', 'Invalid email or password.');
-            return res.redirect('/login');
+            return res.render('auth/login', { error: 'Invalid email or password.' });
         }
 
         req.session.userId = user.id;
