@@ -83,7 +83,7 @@ const reportRoutes = require('./routes/reports');
 const adminRoutes = require('./routes/admin');
 const reportChildRoutes = require('./routes/reportChild');
 const reportChildController = require('./controllers/reportChildController');
-const { requireAuth } = require('./middleware/authMiddleware');
+const { requireAuth, requireAdmin } = require('./middleware/authMiddleware');
 
 // Mount Auth
 app.use('/', authRoutes);
@@ -91,12 +91,15 @@ app.use('/', authRoutes);
 // Mount protected modules (Order here is very important!)
 app.use('/children', requireAuth, childrenRoutes);
 app.use('/adoptions', requireAuth, adoptionRoutes);
-app.use('/staff', requireAuth, staffRoutes);
+app.use('/staff', requireAdmin, staffRoutes);
 app.use('/donations', requireAuth, donationRoutes);
 app.use('/reports', requireAuth, reportRoutes);
-app.use('/admin', requireAuth, adminRoutes);
-app.get('/admin/reported-children', requireAuth, reportChildController.adminIndex);
-app.post('/admin/reported-children/:id/status', requireAuth, reportChildController.updateStatus);
+app.use('/admin', requireAdmin, adminRoutes);
+app.get('/admin/reported-children', requireAdmin, reportChildController.adminIndex);
+app.post('/admin/reported-children/:id/status', requireAdmin, reportChildController.updateStatus);
+app.get('/admin/reports', requireAdmin, reportChildController.adminIndex);
+app.post('/admin/reports/:id/status', requireAdmin, reportChildController.updateStatus);
+app.get('/admin/admissions', requireAdmin, (req, res) => res.redirect('/adoptions'));
 
 const publicRoutes = require('./routes/public');
 const apiDonationsRoutes = require('./routes/apiDonations');
@@ -111,6 +114,21 @@ app.use('/admission', admissionRoutes);
 app.use('/public/admission', admissionRoutes);
 app.use('/api/donations', apiDonationsRoutes);
 app.use('/api', apiTestEmailRoutes);
+
+app.get('/admin-dashboard', requireAdmin, (req, res) => {
+    res.render('dashboard/admin', {
+        user: { full_name: req.session.fullName, role: req.session.role }
+    });
+});
+
+app.get('/staff-dashboard', requireAuth, (req, res) => {
+    if (req.session.role === 'admin') {
+        return res.redirect('/admin-dashboard');
+    }
+    res.render('dashboard/staff', {
+        user: { full_name: req.session.fullName, role: req.session.role }
+    });
+});
 
 // Start Server (local dev only)
 if (require.main === module) {

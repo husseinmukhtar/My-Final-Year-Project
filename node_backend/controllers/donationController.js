@@ -23,6 +23,10 @@ exports.new = (req, res) => {
 
 exports.create = async (req, res) => {
     try {
+        if (req.session.role !== 'admin') {
+            req.flash('error', 'Access denied. Only administrators can record donations.');
+            return res.redirect('/donations');
+        }
         let {
             donor_name, donor_email, phone, donation_type, currency, payment_method, amount,
             item_description, item_name, quantity, item_condition, donation_date

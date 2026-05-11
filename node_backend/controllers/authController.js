@@ -4,9 +4,24 @@ const User = require('../models/User');
 exports.showLogin = (req, res) => {
     // Already logged in? Redirect to protected area
     if (req.session && req.session.userId) {
-        return res.redirect('/children');
+        if (req.session.role === 'admin') {
+            return res.redirect('/admin-dashboard');
+        } else {
+            return res.redirect('/staff-dashboard');
+        }
     }
     res.render('auth/login', { error: null });
+};
+
+exports.showRegister = (req, res) => {
+    if (req.session && req.session.userId) {
+        if (req.session.role === 'admin') {
+            return res.redirect('/admin-dashboard');
+        } else {
+            return res.redirect('/staff-dashboard');
+        }
+    }
+    res.render('auth/register', { error: null });
 };
 
 exports.login = async (req, res) => {
@@ -24,26 +39,21 @@ exports.login = async (req, res) => {
             const cleanHash = user.password.trim();
             const storedHash = cleanHash.replace(/^\$2y\$/, '$2a$');
             
-            // Temporary debug logs
-            console.log('--- DEBUG LOGIN FLOW ---');
-            console.log('1. User input password length:', password.length);
-            console.log('2. User input password:', `[${password}]`);
-            console.log('3. Stored DB hash raw length:', user.password.length);
-            console.log('4. Stored DB hash after trim:', `[${cleanHash}]`);
-            console.log('5. Target hash for comparison:', `[${storedHash}]`);
-            console.log('--- END DEBUG ---');
 
             // Verify password using bcryptjs
             const passwordMatch = await bcrypt.compare(password, storedHash);
-            console.log('6. Comparison result:', passwordMatch);
             
             if (passwordMatch) {
                 // Initialize session values based on schema
                 req.session.userId = user.id;
                 req.session.fullName = user.full_name;
                 req.session.role = user.role;
-                
-                return res.redirect('/children');
+                req.flash('success', 'Logged in successfully.');
+                if (user.role === 'admin') {
+                    return res.redirect('/admin-dashboard');
+                } else {
+                    return res.redirect('/staff-dashboard');
+                }
             } else {
                 return res.render('auth/login', { error: 'Invalid password.' });
             }

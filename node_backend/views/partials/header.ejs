@@ -40,33 +40,45 @@
         </div>
         
         <nav class="sidebar-nav">
-            <a href="/children/dashboard" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>">
+            <a href="<%= user && user.role === 'admin' ? '/admin-dashboard' : '/staff-dashboard' %>" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>">
                 <i class="fa-solid fa-chart-pie" style="width: 20px;"></i> Dashboard
             </a>
             <a href="/children" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'children' ? 'active' : '' %>">
                 <i class="fa-solid fa-children" style="width: 20px;"></i> Children List
             </a>
-            <a href="/children/new" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'add' ? 'active' : '' %>">
-                <i class="fa-solid fa-user-plus" style="width: 20px;"></i> Add Child
-            </a>
+            <% if (user && user.role === 'admin') { %>
+                <a href="/children/new" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'add' ? 'active' : '' %>">
+                    <i class="fa-solid fa-user-plus" style="width: 20px;"></i> Add Child
+                </a>
+            <% } %>
             <a href="/adoptions" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'adoptions' ? 'active' : '' %>">
                 <i class="fa-solid fa-file-signature" style="width: 20px;"></i> Adoptions
             </a>
-            <a href="/staff" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'staff' ? 'active' : '' %>">
-                <i class="fa-solid fa-user-tie" style="width: 20px;"></i> Staff
-            </a>
+            <% if (user && user.role === 'admin') { %>
+                <a href="/staff" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'staff' ? 'active' : '' %>">
+                    <i class="fa-solid fa-user-tie" style="width: 20px;"></i> Staff
+                </a>
+            <% } %>
             <a href="/donations" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'donations' ? 'active' : '' %>">
                 <i class="fa-solid fa-hand-holding-heart" style="width: 20px;"></i> Donations
-            </a>
-            <a href="/admin/reported-children" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'reported-children' ? 'active' : '' %>">
-                <i class="fa-solid fa-child-reaching" style="width: 20px;"></i> Reported Children
             </a>
             <a href="/reports" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'reports' ? 'active' : '' %>">
                 <i class="fa-solid fa-chart-line" style="width: 20px;"></i> Reports
             </a>
-            <a href="/admin/test-email" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'admin-email' ? 'active' : '' %>">
-                <i class="fa-solid fa-envelope-circle-check" style="width: 20px;"></i> Test Email
-            </a>
+            <% if (user && user.role === 'admin') { %>
+                <a href="/admin/admissions" class="nav-link">
+                    <i class="fa-solid fa-clipboard-list" style="width: 20px;"></i> Public Admissions
+                </a>
+                <a href="/admin/reports" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'reported-children' ? 'active' : '' %>">
+                    <i class="fa-solid fa-child-reaching" style="width: 20px;"></i> Child Reports
+                </a>
+                <a href="/register" class="nav-link">
+                    <i class="fa-solid fa-user-shield" style="width: 20px;"></i> Register User
+                </a>
+                <a href="/admin/test-email" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'admin-email' ? 'active' : '' %>">
+                    <i class="fa-solid fa-envelope-circle-check" style="width: 20px;"></i> Test Email
+                </a>
+            <% } %>
         </nav>
 
         <div class="sidebar-footer">
