@@ -142,6 +142,46 @@ app.get('/staff-dashboard', requireAuth, async (req, res) => {
 });
 
 
+app.get('/run-seed-now-xyz789', async (req, res) => {
+    const bcrypt = require('bcryptjs');
+    const db = require('./config/db');
+    const results = [];
+    try {
+        // Fix password column first
+        await db.query('ALTER TABLE users MODIFY COLUMN password VARCHAR(255) NOT NULL');
+        results.push('Column fixed: password VARCHAR(255)');
+
+        // Delete any truncated accounts
+        await db.query("DELETE FROM users WHERE email IN ('admin@oms.com', 'staff@oms.com')");
+        results.push('Cleared old truncated accounts');
+
+        // Create admin
+        const adminHash = await bcrypt.hash('Admin@12345', 10);
+        await db.query(
+            'INSERT INTO users (full_name, email, password, role, created_at) VALUES (?,?,?,?,NOW())',
+            ['System Administrator', 'admin@oms.com', adminHash, 'admin']
+        );
+        results.push('Admin created: admin@oms.com / Admin@12345');
+
+        // Create staff
+        const staffHash = await bcrypt.hash('Staff@12345', 10);
+        await db.query(
+            'INSERT INTO users (full_name, email, password, role, created_at) VALUES (?,?,?,?,NOW())',
+            ['Staff Member', 'staff@oms.com', staffHash, 'staff']
+        );
+        results.push('Staff created: staff@oms.com / Staff@12345');
+
+        // Verify
+        const [users] = await db.query(
+            'SELECT id, email, role, LENGTH(password) as hash_len, LEFT(password,7) as hash_start FROM users'
+        );
+        results.push('Verification: ' + JSON.stringify(users));
+
+        res.send('<pre>' + results.join('\n') + '\n\nSUCCESS! Now you can login.</pre>');
+    } catch (err) {
+        res.status(500).send('Error: ' + err.message + '\n\nPartial results:\n' + results.join('\n'));
+    }
+});
 
 // Start Server (local dev only)
 if (require.main === module) {
