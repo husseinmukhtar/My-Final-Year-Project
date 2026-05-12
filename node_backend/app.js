@@ -120,18 +120,24 @@ app.use('/public/admission', admissionRoutes);
 app.use('/api/donations', apiDonationsRoutes);
 app.use('/api', apiTestEmailRoutes);
 
-app.get('/admin-dashboard', requireAdmin, (req, res) => {
+app.get('/admin-dashboard', requireAdmin, async (req, res) => {
+    const Report = require('./models/Report');
+    const stats = await Report.getStats().catch(() => ({}));
     res.render('dashboard/admin', {
-        user: { full_name: req.session.fullName, role: req.session.role }
+        user: { full_name: req.session.fullName, role: req.session.role },
+        stats
     });
 });
 
-app.get('/staff-dashboard', requireAuth, (req, res) => {
+app.get('/staff-dashboard', requireAuth, async (req, res) => {
     if (req.session.role === 'admin') {
         return res.redirect('/admin-dashboard');
     }
+    const Report = require('./models/Report');
+    const stats = await Report.getStats().catch(() => ({}));
     res.render('dashboard/staff', {
-        user: { full_name: req.session.fullName, role: req.session.role }
+        user: { full_name: req.session.fullName, role: req.session.role },
+        stats
     });
 });
 

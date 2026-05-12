@@ -25,6 +25,37 @@
             <a href="/logout" class="btn btn-outline-light">Logout</a>
         </div>
 
+        <% if (typeof stats !== 'undefined' && stats) { %>
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card module-card h-100" style="border-left: 4px solid #6366f1;">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase mb-2">Total Children</h6>
+                        <h3 class="mb-0"><%= stats.childrenCount || 0 %></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card module-card h-100" style="border-left: 4px solid #facc15;">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase mb-2">Total Donations</h6>
+                        <h3 class="mb-0"><%= stats.donationsCount || 0 %></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card module-card h-100" style="border-left: 4px solid #34d399;">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase mb-2">Adoption Records</h6>
+                        <h3 class="mb-0"><%= stats.adoptionCount || 0 %></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+
+        <h4 class="mb-3 text-light">Quick Links</h4>
+
         <div class="row g-4">
             <div class="col-md-6">
                 <div class="card module-card h-100">
